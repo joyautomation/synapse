@@ -68,6 +68,9 @@ const onDisconnect = (node: SparkplugNode) => {
   };
 };
 
+/**
+ * Object containing node command functions.
+ */
 export const nodeCommands = {
   rebirth: (node: SparkplugNode) =>
     pipe(killNode, disconnectNode, connectNode)(node),
@@ -131,6 +134,9 @@ const setupNodeEvents = (node: SparkplugNode) => {
   >("ncmd", onNodeCommand(node), node.events);
 };
 
+/**
+ * Object containing node state transition functions.
+ */
 const nodeTransitions = {
   connect: (node: SparkplugNode) => {
     node.mqtt = createMqttClient(getMqttConfigFromSparkplug(node), node.bdseq);
@@ -261,6 +267,11 @@ const changeNodeState = curry(
   }
 );
 
+/**
+ * Gets the node birth payload.
+ * @param {UMetric[] | undefined} metrics - The metrics to include in the birth payload.
+ * @returns {UPayload} The node birth payload.
+ */
 export const getNodeBirthPayload = (
   metrics: UMetric[] | undefined
 ): UPayload => ({
@@ -315,6 +326,11 @@ const connectNode = changeNodeState(
   "connect"
 );
 
+/**
+ * Disconnects a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to disconnect.
+ * @returns {SparkplugNode} The disconnected node.
+ */
 export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
   changeNodeState(
     (node: SparkplugNode) => someTrue(...Object.values(node.states.connected)),
