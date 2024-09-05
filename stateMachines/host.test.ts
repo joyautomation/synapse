@@ -1,17 +1,12 @@
 import { describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { createHost, disconnectHost, onConnect } from "./host.ts";
-import {
-  ISparkplugEdgeOptions,
-  SparkplugCreateHostInput,
-  SparkplugHost,
-} from "../types.d.ts";
-import mqtt, { MqttClient } from "npm:mqtt";
-import { onMessage } from "./utils.ts";
-import { assertSpyCalls, Spy, spy, stub } from "jsr:@std/testing/mock";
+import { createHost, disconnectHost } from "./host.ts";
+import type { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
+import type { MqttClient } from "npm:mqtt";
+import type mqtt from "npm:mqtt";
+import { assertSpyCalls, spy, stub } from "jsr:@std/testing/mock";
 import { _internals } from "../mqtt.ts";
 import { EventEmitter } from "node:events";
-import { IDisconnectPacket } from "../../../../.cache/deno/npm/localhost_4873/mqtt-packet/9.0.0/types/index.d.ts";
 
 const connectPacket: mqtt.IConnackPacket = {
   cmd: "connack",
@@ -19,7 +14,7 @@ const connectPacket: mqtt.IConnackPacket = {
   returnCode: 0,
 };
 
-const disconnectPacket: IDisconnectPacket = {
+const disconnectPacket: mqtt.IDisconnectPacket = {
   cmd: "disconnect",
 };
 
