@@ -2,10 +2,10 @@ import { describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import { compressPayload, decompressPayload, hasAlgorithm } from "./index.ts";
 import {
-  UPayload,
+  type UPayload,
   encodePayload,
 } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
-import { gzip, deflate } from "npm:pako";
+import { gzip, deflate } from "npm:pako@2.1.0";
 
 describe("hasAlgorithm", () => {
   it("returns true if there is a metric with the name algorithm", () => {

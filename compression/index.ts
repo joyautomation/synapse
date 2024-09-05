@@ -1,6 +1,6 @@
 import Long from "npm:long@5.2.3";
 import { pipe } from "npm:ramda@0.30.1";
-import { gzip, deflate, inflate, ungzip } from "npm:pako@2.0.0";
+import { gzip, deflate, inflate, ungzip } from "npm:pako@2.1.0";
 import type { CompressPayloadInput, PayloadOptions } from "./types.d.ts";
 import {
   type UPayload,
