@@ -14,6 +14,11 @@ import type { HostTransition } from "./types.d.ts";
 import { getMqttConfigFromSparkplug, onCurry } from "./utils.ts";
 import { onMessage } from "./utils.ts";
 
+/**
+ * Handles the 'connect' event for a SparkplugHost.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @returns {() => void} A function to be called when the host connects.
+ */
 export const onConnect = (host: SparkplugHost) => {
   return () => {
     setHostStateConnected(host);
@@ -25,6 +30,11 @@ export const onConnect = (host: SparkplugHost) => {
   };
 };
 
+/**
+ * Handles the 'disconnect' event for a SparkplugHost.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @returns {() => void} A function to be called when the host disconnects.
+ */
 export const onDisconnect = (host: SparkplugHost) => {
   return () => {
     setHostStateDisconnected(host);
@@ -33,6 +43,10 @@ export const onDisconnect = (host: SparkplugHost) => {
   };
 };
 
+/**
+ * Sets up event listeners for a SparkplugHost.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ */
 const setupHostEvents = (host: SparkplugHost) => {
   if (host.mqtt) {
     pipe(
@@ -65,6 +79,11 @@ const hostTransitions = {
   },
 };
 
+/**
+ * Gets the current state of a SparkplugHost as a string.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @returns {string} The current state as a string.
+ */
 export const getHostStateString = (host: SparkplugHost) => {
   if (host.states.disconnected) {
     return "disconnected";
@@ -88,6 +107,14 @@ const deriveSetHostState = (state: Partial<SparkplugHost["states"]>) =>
 const setHostStateConnected = deriveSetHostState({ connected: true });
 const setHostStateDisconnected = deriveSetHostState({ disconnected: true });
 
+/**
+ * Changes the state of a SparkplugHost if it meets the required conditions.
+ * @param {(host: SparkplugHost) => boolean} inRequiredState - Function to check if the host is in the required state.
+ * @param {string} notInRequiredStateLogText - Log message if the host is not in the required state.
+ * @param {HostTransition} transition - The transition to perform.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @returns {SparkplugHost} The updated SparkplugHost instance.
+ */
 const changeHostState = curry(
   (
     inRequiredState: (host: SparkplugHost) => boolean,
@@ -117,6 +144,11 @@ const connectHost = changeHostState(
   "connect"
 );
 
+/**
+ * Disconnects a SparkplugHost if it's currently connected.
+ * @param {SparkplugHost} host - The SparkplugHost instance to disconnect.
+ * @returns {SparkplugHost} The updated SparkplugHost instance.
+ */
 export const disconnectHost: (host: SparkplugHost) => SparkplugHost =
   changeHostState(
     (host: SparkplugHost) => host.states.connected,
@@ -124,6 +156,11 @@ export const disconnectHost: (host: SparkplugHost) => SparkplugHost =
     "disconnect"
   );
 
+/**
+ * Creates a new SparkplugHost instance and connects it.
+ * @param {SparkplugCreateHostInput} config - The configuration for the new host.
+ * @returns {SparkplugHost} The newly created and connected SparkplugHost instance.
+ */
 export const createHost = (config: SparkplugCreateHostInput): SparkplugHost => {
   const host = {
     ...config,

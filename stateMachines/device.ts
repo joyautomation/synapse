@@ -17,6 +17,12 @@ import type {
 import { setStateCurry as setState } from "../utils.ts";
 import { getMqttConfigFromSparkplug } from "./utils.ts";
 
+/**
+ * Creates a new SparkplugDevice object.
+ * @param {string} id - The unique identifier for the device.
+ * @param {Object.<string, SparkplugMetric>} [metrics={}] - The metrics associated with the device.
+ * @returns {SparkplugDevice} A new SparkplugDevice object.
+ */
 export const createDevice = (
   id: string,
   metrics: { [id: string]: SparkplugMetric } = {}
@@ -66,6 +72,11 @@ const deviceTransitions = deviceTransitionNames.reduce(
   {} as DeviceTransitions
 );
 
+/**
+ * Gets the current state of the device as a string.
+ * @param {SparkplugDevice} device - The device to check.
+ * @returns {string} A string representing the current state of the device.
+ */
 export const getDeviceStateString = (device: SparkplugDevice) => {
   if (device.states.born) {
     return "born";
@@ -113,6 +124,12 @@ const deriveSetDeviceState = (state: Partial<SparkplugDevice["states"]>) =>
 const setDeviceStateBorn = deriveSetDeviceState({ born: true });
 const setDeviceStateDead = deriveSetDeviceState({ dead: true });
 
+/**
+ * Transitions a device to the "born" state.
+ * @param {SparkplugNode} node - The node associated with the device.
+ * @param {SparkplugDevice} device - The device to transition.
+ * @returns {SparkplugDevice} The updated device object.
+ */
 export const birthDevice = (node: SparkplugNode, device: SparkplugDevice) =>
   pipe(
     changeDeviceState(
@@ -124,6 +141,12 @@ export const birthDevice = (node: SparkplugNode, device: SparkplugDevice) =>
     setDeviceStateBorn
   )(device);
 
+/**
+ * Transitions a device to the "dead" state.
+ * @param {SparkplugNode} node - The node associated with the device.
+ * @param {SparkplugDevice} device - The device to transition.
+ * @returns {SparkplugDevice} The updated device object.
+ */
 export const killDevice = (node: SparkplugNode, device: SparkplugDevice) =>
   pipe(
     changeDeviceState(
@@ -135,6 +158,13 @@ export const killDevice = (node: SparkplugNode, device: SparkplugDevice) =>
     setDeviceStateDead
   )(device);
 
+/**
+ * Publishes device data if the node and device are in the correct states.
+ * @param {SparkplugNode} node - The node associated with the device.
+ * @param {SparkplugDevice} device - The device publishing the data.
+ * @param {UPayload} payload - The data payload to publish.
+ * @returns {SparkplugDevice} The device object.
+ */
 export const publishDeviceData = (
   node: SparkplugNode,
   device: SparkplugDevice,

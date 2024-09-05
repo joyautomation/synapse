@@ -13,8 +13,8 @@ import {
   destroyMqttClient,
   handleMessage,
 } from "./mqtt.ts";
-import { ISparkplugEdgeOptions } from "./types.d.ts";
-import mqtt from "npm:mqtt";
+import type{ ISparkplugEdgeOptions } from "./types.d.ts";
+import type mqtt from "npm:mqtt";
 import { EventEmitter } from "node:events";
 import type { UPayload } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
 import { Buffer } from "node:buffer";

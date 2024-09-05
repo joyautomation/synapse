@@ -18,7 +18,12 @@ import { cond } from "./utils.ts";
 import type { EventEmitter } from "node:events";
 import { Buffer } from "node:buffer";
 
-//wrapper functions to make it easier to test
+/**
+ * Wrapper function to connect to an MQTT broker
+ * @param {string} url - The URL of the MQTT broker
+ * @param {mqtt.IClientOptions} options - MQTT client options
+ * @returns {mqtt.MqttClient} MQTT client instance
+ */
 export function mqttConnect(url: string, options: mqtt.IClientOptions) {
   return mqtt.connect(url, options);
 }
@@ -33,6 +38,13 @@ const { encodePayload, decodePayload } = spb;
 
 const toBuffer = (payload: Uint8Array) => Buffer.from(payload);
 
+/**
+ * Creates a Sparkplug B topic string
+ * @param {string} commandType - The Sparkplug B command type
+ * @param {ISparkplugEdgeOptions} options - Sparkplug edge configuration options
+ * @param {string} [deviceId] - Optional device ID
+ * @returns {string} Formatted Sparkplug B topic string
+ */
 export const createSpbTopic = (
   commandType:
     | "NBIRTH"
@@ -50,9 +62,20 @@ export const createSpbTopic = (
     deviceId ? "/" + deviceId : ""
   }`;
 
+/**
+ * Creates a payload buffer from a given payload object
+ * @param {any} payload - The payload object to encode
+ * @returns {Buffer} Encoded payload as a Buffer
+ */
 export const createPayload = (payload: any) =>
   pipe(encodePayload, toBuffer)(payload);
 
+/**
+ * Adds a bdSeq metric to the given payload
+ * @param {number} bdSeq - Birth/death sequence number
+ * @param {UPayload} payload - The payload to modify
+ * @returns {UPayload} Modified payload with bdSeq metric added
+ */
 export const addBdSeqMetric = (bdSeq: number, payload: UPayload): UPayload => ({
   ...payload,
   metrics: [
@@ -65,11 +88,22 @@ export const addBdSeqMetric = (bdSeq: number, payload: UPayload): UPayload => ({
   ],
 });
 
+/**
+ * Creates a curried function to add bdSeq metric to a payload
+ * @param {number} bdSeq - Birth/death sequence number
+ * @returns {Function} Curried function that takes a payload and returns a modified payload
+ */
 export const addBdSeqMetricCurry =
   (bdSeq: number) =>
   (payload: UPayload): UPayload =>
     addBdSeqMetric(bdSeq, payload);
 
+/**
+ * Adds a sequence number to the given payload
+ * @param {SparkplugNode | SparkplugHost} sparkplug - Sparkplug node or host instance
+ * @param {UPayload} payload - The payload to modify
+ * @returns {UPayload} Modified payload with sequence number added
+ */
 export const addSeqNumber = (
   sparkplug: SparkplugNode | SparkplugHost,
   payload: UPayload
@@ -81,11 +115,22 @@ export const addSeqNumber = (
   };
 };
 
+/**
+ * Creates a curried function to add sequence number to a payload
+ * @param {SparkplugNode | SparkplugHost} sparkplug - Sparkplug node or host instance
+ * @returns {Function} Curried function that takes a payload and returns a modified payload
+ */
 export const addSeqNumberCurry =
   (sparkplug: SparkplugNode | SparkplugHost) =>
   (payload: UPayload): UPayload =>
     addSeqNumber(sparkplug, payload);
 
+/**
+ * Publishes a node death message
+ * @param {number} bdSeq - Birth/death sequence number
+ * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ */
 export const publishNodeDeath = (
   bdSeq: number,
   mqttConfig: ISparkplugEdgeOptions,
@@ -96,6 +141,15 @@ export const publishNodeDeath = (
   publish(topic, pipe(encodePayload, toBuffer)(payload), client);
 };
 
+/**
+ * Publishes a node birth message
+ * @param {number} bdSeq - Birth/death sequence number
+ * @param {number} seq - Sequence number
+ * @param {PayloadOptions | undefined} options - Payload compression options
+ * @param {UPayload} payload - The payload to publish
+ * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ */
 export const publishNodeBirth = (
   bdSeq: number,
   seq: number,
@@ -118,6 +172,11 @@ export const publishNodeBirth = (
   log.info(`published node ${mqttConfig.edgeNode} birth`);
 };
 
+/**
+ * Publishes a payload for a specific Sparkplug command
+ * @param {string} command - The Sparkplug command type
+ * @returns {Function} A function that publishes the payload for the specified command
+ */
 const publishPayload =
   (command: "DBIRTH" | "DDEATH" | "DDATA" | "NDATA") =>
   (
@@ -152,6 +211,12 @@ export const publishDeviceBirth = publishPayload("DBIRTH");
 export const publishDeviceData = publishPayload("DDATA");
 export const publishNodeData = publishPayload("NDATA");
 
+/**
+ * Publishes a message to an MQTT topic
+ * @param {string} topic - The MQTT topic to publish to
+ * @param {string | Buffer} message - The message to publish
+ * @param {mqtt.MqttClient} client - The MQTT client instance
+ */
 export const publish = (
   topic: string,
   message: string | Buffer,
@@ -160,6 +225,13 @@ export const publish = (
   client.publish(topic, message);
 };
 
+/**
+ * Subscribes to an MQTT topic
+ * @param {string | string[]} topic - The topic(s) to subscribe to
+ * @param {mqtt.IClientSubscribeOptions | mqtt.IClientSubscribeProperties | undefined} options - Subscription options
+ * @param {mqtt.MqttClient} mqttClient - The MQTT client instance
+ * @returns {mqtt.MqttClient} The MQTT client instance
+ */
 export const subscribe = (
   topic: string | string[],
   options:
@@ -207,6 +279,11 @@ export const publishHostOnline = (host: SparkplugHost) => {
   host.mqtt?.publish(topic, payload, { retain: true });
 };
 
+/**
+ * Creates an MQTT client for a Sparkplug host
+ * @param {ISparkplugHostOptions} config - Host configuration options
+ * @returns {mqtt.MqttClient} MQTT client instance
+ */
 export const createHostMqttClient = (config: ISparkplugHostOptions) => {
   const { serverUrl, clientId, keepalive, username, password, primaryHostId } =
     config;
@@ -229,6 +306,12 @@ export const createHostMqttClient = (config: ISparkplugHostOptions) => {
   return _internals.mqttConnect(serverUrl, mqttOptions);
 };
 
+/**
+ * Creates an MQTT client for a Sparkplug edge node
+ * @param {ISparkplugEdgeOptions} config - Edge node configuration options
+ * @param {number} [bdSeq=0] - Initial birth/death sequence number
+ * @returns {mqtt.MqttClient} MQTT client instance
+ */
 export const createMqttClient = (config: ISparkplugEdgeOptions, bdSeq = 0) => {
   const {
     serverUrl,
@@ -343,11 +426,23 @@ const createHandleHostCommands = (
   );
 };
 
+/**
+ * Parses a Sparkplug B topic string into its components
+ * @param {string} topic - The Sparkplug B topic string to parse
+ * @returns {SpbTopic} An object containing the parsed topic components
+ */
 export const parseSpbTopic = (topic: string): SpbTopic => {
   const [version, groupId, commandType, edgeNode, deviceId] = topic.split("/");
   return { version, groupId, commandType, edgeNode, deviceId };
 };
 
+/**
+ * Handles incoming MQTT messages
+ * @param {string} topic - The topic of the received message
+ * @param {Buffer} message - The message payload
+ * @param {EventEmitter} emitter - Event emitter to trigger events
+ * @param {ISparkplugEdgeOptions | ISparkplugHostOptions} mqttConfig - MQTT configuration
+ */
 export const handleMessage = (
   topic: string,
   message: Buffer,

@@ -33,6 +33,11 @@ import { onMessage } from "./utils.ts";
 import type mqtt from "npm:mqtt@5.10.1";
 import type { OnConnectCallback } from "npm:mqtt@5.10.1";
 
+/**
+ * Handles the connection event for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to handle the connection for.
+ * @returns {() => void} A function to be called when the connection is established.
+ */
 const onConnect = (node: SparkplugNode) => {
   return () => {
     setNodeStateConnected(node);
@@ -50,6 +55,11 @@ const onConnect = (node: SparkplugNode) => {
   };
 };
 
+/**
+ * Handles the disconnection event for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to handle the disconnection for.
+ * @returns {() => void} A function to be called when the disconnection occurs.
+ */
 const onDisconnect = (node: SparkplugNode) => {
   return () => {
     setNodeStateDisconnected(node);
@@ -76,6 +86,10 @@ const onNodeCommand = (node: SparkplugNode) => {
   };
 };
 
+/**
+ * Sets up event listeners for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to set up events for.
+ */
 const setupNodeEvents = (node: SparkplugNode) => {
   if (node.mqtt) {
     pipe(
@@ -135,6 +149,11 @@ const nodeTransitions = {
   },
 };
 
+/**
+ * Gets the current state of a Sparkplug node as a string.
+ * @param {SparkplugNode} node - The Sparkplug node to get the state for.
+ * @returns {string} The current state of the node as a string.
+ */
 export const getNodeStateString = (node: SparkplugNode) => {
   if (node.states.disconnected) {
     return "disconnected";
@@ -240,6 +259,12 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
     "disconnect"
   );
 
+/**
+ * Publishes metrics for a Sparkplug node and its devices.
+ * @param {SparkplugNode} node - The Sparkplug node to publish metrics for.
+ * @param {number} [scanRate] - The scan rate to filter metrics by.
+ * @param {(metric: SparkplugMetric) => boolean} [metricSelector] - A function to select which metrics to publish.
+ */
 export const publishMetrics = (
   node: SparkplugNode,
   scanRate?: number,
@@ -279,6 +304,11 @@ export const publishMetrics = (
   });
 };
 
+/**
+ * Starts scan intervals for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to start scans for.
+ * @returns {SparkplugNodeScanRates} An object containing the started scan intervals.
+ */
 export const startScans = (node: SparkplugNode) => {
   const scanRates = [
     ...new Set(
@@ -301,10 +331,19 @@ export const startScans = (node: SparkplugNode) => {
   }, {} as SparkplugNodeScanRates);
 };
 
+/**
+ * Stops all scan intervals for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to stop scans for.
+ */
 export const killScans = (node: SparkplugNode) => {
   Object.values(node.scanRates).forEach((scanRate) => clearInterval(scanRate));
 };
 
+/**
+ * Creates a new Sparkplug node.
+ * @param {SparkplugCreateNodeInput} config - The configuration for the new node.
+ * @returns {SparkplugNode} The created Sparkplug node.
+ */
 export const createNode = (config: SparkplugCreateNodeInput): SparkplugNode => {
   const node = {
     ...config,

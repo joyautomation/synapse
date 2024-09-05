@@ -1,5 +1,3 @@
-import { curry } from "npm:ramda";
-
 /**
  * Finds the first conditional that matches the condition based on the args provided and executes its action.
  *

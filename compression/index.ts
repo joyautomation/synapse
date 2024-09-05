@@ -77,11 +77,10 @@ const generateCompressionAlgorithmConditions = (
   }));
 
 /**
- * Compresses the payload based on the provided options and compression algorithms.
- *
- * @param {PayloadOptions | undefined} options - The options for payload compression.
- * @param {UPayload} payload - The payload to be compressed.
- * @return {any} The compressed payload.
+ * Compresses the payload using the specified algorithm.
+ * @param {PayloadOptions | undefined} options - Compression options.
+ * @param {UPayload} payload - The payload to compress.
+ * @returns {UPayload} The compressed payload.
  */
 export const compressPayload = (
   options: PayloadOptions | undefined,
@@ -103,6 +102,11 @@ export const compressPayload = (
     },
   ]);
 
+/**
+ * Curried version of compressPayload.
+ * @param {PayloadOptions | undefined} options - Compression options.
+ * @returns {function(UPayload): UPayload} A function that takes a payload and returns the compressed payload.
+ */
 export const compressPayloadCurry =
   (options: PayloadOptions | undefined) => (payload: UPayload) =>
     compressPayload(options, payload);
@@ -143,9 +147,9 @@ const generateDecompressionAlgorithmConditions = (
 
 /**
  * Decompresses the payload based on the provided decompression algorithms.
- *
- * @param {UPayload} payload - The payload to be decompressed.
- * @return {Uint8Array} The decompressed payload.
+ * @param {Buffer | UPayload} payload - The payload to be decompressed.
+ * @returns {Uint8Array} The decompressed payload.
+ * @throws {Error} If an unknown or unsupported algorithm is encountered.
  */
 export const decompressPayload = (payload: Buffer | UPayload): Uint8Array =>
   cond(payload, [
