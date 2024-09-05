@@ -33,3 +33,5 @@ export { createHost } from "./stateMachines/host.ts";
  * @memberof module:stateMachines
  */
 export { disconnectHost } from "./stateMachines/host.ts";
+
+export type * from "./types.d.ts";
