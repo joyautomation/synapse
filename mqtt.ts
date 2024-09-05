@@ -32,10 +32,18 @@ export const _internals = {
   mqttConnect,
 };
 
+/** Sparkplug B protocol version */
 const version: string = "spBv1.0";
+
+/** Sparkplug B payload encoder/decoder instance */
 const spb = sparkplug.get("spBv1.0")!;
 const { encodePayload, decodePayload } = spb;
 
+/**
+ * Converts a Uint8Array to a Buffer
+ * @param {Uint8Array} payload - The payload to convert
+ * @returns {Buffer} The converted Buffer
+ */
 const toBuffer = (payload: Uint8Array) => Buffer.from(payload);
 
 /**
@@ -244,6 +252,13 @@ export const subscribe = (
   mqttClient.subscribe(topic, options);
   return mqttClient;
 };
+
+/**
+ * Creates a curried function to subscribe to an MQTT topic
+ * @param {string} topic - The topic to subscribe to
+ * @param {mqtt.IClientSubscribeOptions} options - Subscription options
+ * @returns {Function} A function that takes an MQTT client and subscribes to the topic
+ */
 export const subscribeCurry =
   (topic: string, options: mqtt.IClientSubscribeOptions) =>
   (mqttClient: mqtt.MqttClient) =>
@@ -266,6 +281,7 @@ export const unsubscribe = (
   return mqttClient;
 };
 
+/** Type for functions that modify a given type */
 export type Modify<U> = (u: U) => U;
 
 /**
@@ -366,6 +382,7 @@ export const destroyMqttClient = (client: mqtt.MqttClient | null) => {
   if (client) client.end();
 };
 
+/** Type representing a parsed Sparkplug B topic */
 type SpbTopic = {
   version: string;
   groupId: string;
@@ -374,14 +391,22 @@ type SpbTopic = {
   deviceId?: string;
 };
 
+/** Input type for Sparkplug B message conditions and actions */
 type SpbMessageConditionInput = { topic: SpbTopic; message: Buffer };
+
+/** Type for Sparkplug B message condition functions */
 type SpbMessageCondition = (input: SpbMessageConditionInput) => boolean;
+
+/** Type for Sparkplug B message action functions */
 type SpbMessageAction = (input: SpbMessageConditionInput) => void;
+
+/** Type representing a conditional Sparkplug B message handler */
 type SpbMessageConditional = {
   condition: SpbMessageCondition;
   action: SpbMessageAction;
 };
 
+/** Array of all Sparkplug B command types */
 const commands = [
   "DDATA",
   "NBIRTH",
@@ -393,10 +418,16 @@ const commands = [
   "DCMD",
 ];
 
+/** Array of Sparkplug B command types specific to edge nodes */
 const edgeCommands = commands.filter((command) =>
   ["NCMD", "DCMD"].includes(command)
 );
 
+/**
+ * Parses a Sparkplug B topic into a human-readable message
+ * @param {SpbTopic} topic - The parsed Sparkplug B topic
+ * @returns {string} A human-readable message describing the topic
+ */
 const parseTopicMessage = (topic: SpbTopic) => {
   const parts = [
     topic.groupId && `group: ${topic.groupId}`,
