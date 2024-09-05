@@ -68,11 +68,24 @@ const setupHostEvents = (host: SparkplugHost) => {
   }
 };
 
+/**
+ * Defines the state transitions for a SparkplugHost.
+ */
 const hostTransitions = {
+  /**
+   * Connects the host to the MQTT broker.
+   * @param {SparkplugHost} host - The SparkplugHost instance.
+   * @returns {void}
+   */
   connect: (host: SparkplugHost) => {
     host.mqtt = createHostMqttClient(getMqttConfigFromSparkplug(host));
     return setupHostEvents(host);
   },
+  /**
+   * Disconnects the host from the MQTT broker.
+   * @param {SparkplugHost} host - The SparkplugHost instance.
+   * @returns {SparkplugHost} The updated SparkplugHost instance.
+   */
   disconnect: (host: SparkplugHost) => {
     destroyMqttClient(host.mqtt);
     return setHostStateDisconnected(host);
@@ -94,6 +107,11 @@ export const getHostStateString = (host: SparkplugHost) => {
   }
 };
 
+/**
+ * Resets the state of a SparkplugHost.
+ * @param {SparkplugHost} node - The SparkplugHost instance to reset.
+ * @returns {SparkplugHost} The reset SparkplugHost instance.
+ */
 const resetHostState = (node: SparkplugHost) => {
   node.states = {
     connected: false,
@@ -102,9 +120,24 @@ const resetHostState = (node: SparkplugHost) => {
   return node;
 };
 
+/**
+ * Derives a function to set a specific state for a SparkplugHost.
+ * @param {Partial<SparkplugHost["states"]>} state - The state to set.
+ * @returns {(host: SparkplugHost) => SparkplugHost} A function that sets the specified state.
+ */
 const deriveSetHostState = (state: Partial<SparkplugHost["states"]>) =>
   pipe(resetHostState, setState(state));
+
+/**
+ * Sets the host state to connected.
+ * @type {(host: SparkplugHost) => SparkplugHost}
+ */
 const setHostStateConnected = deriveSetHostState({ connected: true });
+
+/**
+ * Sets the host state to disconnected.
+ * @type {(host: SparkplugHost) => SparkplugHost}
+ */
 const setHostStateDisconnected = deriveSetHostState({ disconnected: true });
 
 /**
@@ -138,6 +171,11 @@ const changeHostState = curry(
   }
 );
 
+/**
+ * Connects a SparkplugHost if it's currently disconnected.
+ * @param {SparkplugHost} host - The SparkplugHost instance to connect.
+ * @returns {SparkplugHost} The updated SparkplugHost instance.
+ */
 const connectHost = changeHostState(
   (host: SparkplugHost) => host.states.disconnected,
   "Host needs to be disconnected to be connected",

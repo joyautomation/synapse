@@ -249,6 +249,13 @@ export const subscribeCurry =
   (mqttClient: mqtt.MqttClient) =>
     subscribe(topic, options, mqttClient);
 
+/**
+ * Unsubscribes from an MQTT topic
+ * @param {string} topic - The topic to unsubscribe from
+ * @param {mqtt.IClientSubscribeOptions} options - Unsubscribe options
+ * @param {mqtt.MqttClient} mqttClient - The MQTT client instance
+ * @returns {mqtt.MqttClient} The MQTT client instance
+ */
 export const unsubscribe = (
   topic: string,
   options: mqtt.IClientSubscribeOptions,
@@ -261,6 +268,11 @@ export const unsubscribe = (
 
 export type Modify<U> = (u: U) => U;
 
+/**
+ * Gets the death payload with the given birth/death sequence number
+ * @param {number} bdSeq - Birth/death sequence number
+ * @returns {UPayload} Death payload
+ */
 const getDeathPayload = (bdSeq: number): UPayload => ({
   timestamp: new Date().getTime(),
   metrics: [
@@ -272,6 +284,10 @@ const getDeathPayload = (bdSeq: number): UPayload => ({
   ],
 });
 
+/**
+ * Publishes the host online message
+ * @param {SparkplugHost} host - The Sparkplug host instance
+ */
 export const publishHostOnline = (host: SparkplugHost) => {
   const topic = `STATE/${host.primaryHostId}`;
   const payload = "ONLINE";
@@ -342,6 +358,10 @@ export const createMqttClient = (config: ISparkplugEdgeOptions, bdSeq = 0) => {
   return _internals.mqttConnect(serverUrl, mqttOptions);
 };
 
+/**
+ * Destroys the MQTT client
+ * @param {mqtt.MqttClient | null} client - The MQTT client to destroy
+ */
 export const destroyMqttClient = (client: mqtt.MqttClient | null) => {
   if (client) client.end();
 };
@@ -386,6 +406,12 @@ const parseTopicMessage = (topic: SpbTopic) => {
   return `${parts.join(", ")}`;
 };
 
+/**
+ * Creates a command action for handling Sparkplug messages
+ * @param {string} key - The command key
+ * @param {EventEmitter} emitter - The event emitter instance
+ * @returns {Function} A function that handles the command action
+ */
 const createCommandAction =
   (key: string, emitter: EventEmitter) =>
   ({ topic, message }: SpbMessageConditionInput) => {
@@ -397,6 +423,12 @@ const createCommandAction =
     log.debug(`${key} message received for ${parseTopicMessage(topic)}`);
   };
 
+/**
+ * Creates handlers for edge commands
+ * @param {EventEmitter} emitter - The event emitter instance
+ * @param {ISparkplugEdgeOptions} mqttConfig - The MQTT configuration for the edge
+ * @returns {SpbMessageConditional[]} An array of command handlers
+ */
 const createHandleEdgeCommands = (
   emitter: EventEmitter,
   mqttConfig: ISparkplugEdgeOptions
@@ -413,6 +445,12 @@ const createHandleEdgeCommands = (
   );
 };
 
+/**
+ * Creates handlers for host commands
+ * @param {EventEmitter} emitter - The event emitter instance
+ * @param {ISparkplugHostOptions} mqttConfig - The MQTT configuration for the host
+ * @returns {SpbMessageConditional[]} An array of command handlers
+ */
 const createHandleHostCommands = (
   emitter: EventEmitter,
   mqttConfig: ISparkplugHostOptions

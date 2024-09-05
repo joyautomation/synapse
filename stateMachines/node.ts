@@ -73,11 +73,21 @@ export const nodeCommands = {
     pipe(killNode, disconnectNode, connectNode)(node),
 };
 
+/**
+ * Derives node commands from a UPayload message.
+ * @param {UPayload} message - The message containing metrics.
+ * @returns {string[] | undefined} An array of derived command names.
+ */
 const deriveNodeCommands = (message: UPayload) =>
   message.metrics?.map((metric) =>
     metric.name?.replace("Node Control/", "").toLowerCase()
   );
 
+/**
+ * Creates a function to handle node commands.
+ * @param {SparkplugNode} node - The Sparkplug node to handle commands for.
+ * @returns {(topic: string, message: UPayload) => void} A function that processes node commands.
+ */
 const onNodeCommand = (node: SparkplugNode) => {
   return (topic: string, message: UPayload) => {
     deriveNodeCommands(message)?.forEach((command) => {
@@ -166,6 +176,11 @@ export const getNodeStateString = (node: SparkplugNode) => {
   }
 };
 
+/**
+ * Resets the state of a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to reset.
+ * @returns {SparkplugNode} The node with reset state.
+ */
 const resetNodeState = (node: SparkplugNode) => {
   node.states = {
     connected: { born: false, dead: false },
@@ -174,22 +189,55 @@ const resetNodeState = (node: SparkplugNode) => {
   return node;
 };
 
+/**
+ * Creates a function to set a specific node state.
+ * @param {Partial<SparkplugNode["states"]>} state - The partial state to set.
+ * @returns {(node: SparkplugNode) => SparkplugNode} A function that sets the specified state.
+ */
 const deriveSetNodeState = (state: Partial<SparkplugNode["states"]>) =>
   pipe(
     resetNodeState,
     setStateCurry<SparkplugNode, SparkplugNode["states"]>(state)
   );
+
+/**
+ * Sets the node state to connected.
+ * @type {(node: SparkplugNode) => SparkplugNode}
+ */
 const setNodeStateConnected = deriveSetNodeState({
   connected: { born: false, dead: true },
 });
+
+/**
+ * Sets the node state to disconnected.
+ * @type {(node: SparkplugNode) => SparkplugNode}
+ */
 const setNodeStateDisconnected = deriveSetNodeState({ disconnected: true });
+
+/**
+ * Sets the node state to born.
+ * @type {(node: SparkplugNode) => SparkplugNode}
+ */
 const setNodeStateBorn = deriveSetNodeState({
   connected: { born: true, dead: false },
 });
+
+/**
+ * Sets the node state to dead.
+ * @type {(node: SparkplugNode) => SparkplugNode}
+ */
 const setNodeStateDead = deriveSetNodeState({
   connected: { born: false, dead: true },
 });
 
+/**
+ * Changes the state of a Sparkplug node based on conditions and transitions.
+ * @param {(node: SparkplugNode) => boolean} inRequiredState - Function to check if the node is in the required state.
+ * @param {string} notInRequiredStateLogText - Text to log if the node is not in the required state.
+ * @param {NodeTransition} transition - The transition to apply.
+ * @param {SparkplugNode} node - The Sparkplug node to change state for.
+ * @returns {SparkplugNode} The node after the state change attempt.
+ */
 const changeNodeState = curry(
   (
     inRequiredState: (node: SparkplugNode) => boolean,
@@ -228,6 +276,11 @@ export const getNodeBirthPayload = (
   ],
 });
 
+/**
+ * Births a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to birth.
+ * @returns {SparkplugNode} The birthed node.
+ */
 const birthNode: (node: SparkplugNode) => SparkplugNode = pipe(
   changeNodeState(
     (node: SparkplugNode) => node.states.connected.dead,
@@ -237,6 +290,11 @@ const birthNode: (node: SparkplugNode) => SparkplugNode = pipe(
   setNodeStateBorn as Modify<SparkplugNode>
 );
 
+/**
+ * Kills a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to kill.
+ * @returns {SparkplugNode} The killed node.
+ */
 const killNode = pipe(
   changeNodeState(
     (node: SparkplugNode) => node.states.connected.born,
@@ -246,6 +304,11 @@ const killNode = pipe(
   setNodeStateDead
 );
 
+/**
+ * Connects a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to connect.
+ * @returns {SparkplugNode} The connected node.
+ */
 const connectNode = changeNodeState(
   (node: SparkplugNode) => node.states.disconnected,
   "Node needs to be disconnected to be connected",

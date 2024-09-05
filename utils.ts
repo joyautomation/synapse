@@ -49,9 +49,23 @@ export const setState = <U extends { states: T }, T>(
   return entity;
 };
 
+/**
+ * Creates a curried version of the setState function.
+ *
+ * @template U - The type of the entity object.
+ * @template T - The type of the entity's state.
+ * @param {Partial<T>} state - The partial state to be merged with the existing state.
+ * @returns {(entity: U) => U} A function that takes an entity and returns the updated entity.
+ */
 export const setStateCurry =
   <U extends { states: T }, T>(state: Partial<T>) =>
   (entity: U): U =>
     setState(state, entity);
 
-export const taplog = (...args: unknown[]) => console.log(...args);
+/**
+ * To be used to log values to the console within a pipe.
+ *
+ * @param {...unknown[]} args - The arguments to be logged.
+ * @returns {void}
+ */
+export const taplog = (...args: unknown[]): void => console.log(...args);

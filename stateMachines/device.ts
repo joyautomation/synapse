@@ -44,6 +44,11 @@ type DeviceTransitions = {
   ) => SparkplugDevice;
 };
 
+/**
+ * Derives a transition function for device birth or death.
+ * @param {DeviceTransition} transition - The type of transition ('birth' or 'death').
+ * @returns {function} A function that executes the specified transition.
+ */
 const deriveTransition =
   (transition: "birth" | "death") =>
   (node: SparkplugNode, device: SparkplugDevice) => {
@@ -87,6 +92,15 @@ export const getDeviceStateString = (device: SparkplugDevice) => {
   }
 };
 
+/**
+ * Changes the device state if it meets the required conditions.
+ * @param {function} inRequiredState - Function to check if the device is in the required state.
+ * @param {string} notInRequiredStateLogText - Log message if the device is not in the required state.
+ * @param {DeviceTransition} transition - The type of transition to perform.
+ * @param {SparkplugNode} node - The node associated with the device.
+ * @param {SparkplugDevice} device - The device to change state.
+ * @returns {SparkplugDevice} The updated device object.
+ */
 const changeDeviceState = curry(
   (
     inRequiredState: (device: SparkplugDevice) => boolean,
@@ -111,6 +125,11 @@ const changeDeviceState = curry(
   }
 );
 
+/**
+ * Resets the device state to its initial values.
+ * @param {SparkplugDevice} device - The device to reset.
+ * @returns {SparkplugDevice} The updated device object.
+ */
 const resetDeviceState = (device: SparkplugDevice) => {
   device.states = {
     born: false,
@@ -119,9 +138,26 @@ const resetDeviceState = (device: SparkplugDevice) => {
   return device;
 };
 
+/**
+ * Derives a function to set a specific device state.
+ * @param {Partial<SparkplugDevice["states"]>} state - The state to set.
+ * @returns {function} A function that sets the specified state.
+ */
 const deriveSetDeviceState = (state: Partial<SparkplugDevice["states"]>) =>
   pipe(resetDeviceState, setState(state));
+
+/**
+ * Sets the device state to 'born'.
+ * @param {SparkplugDevice} device - The device to update.
+ * @returns {SparkplugDevice} The updated device object.
+ */
 const setDeviceStateBorn = deriveSetDeviceState({ born: true });
+
+/**
+ * Sets the device state to 'dead'.
+ * @param {SparkplugDevice} device - The device to update.
+ * @returns {SparkplugDevice} The updated device object.
+ */
 const setDeviceStateDead = deriveSetDeviceState({ dead: true });
 
 /**
