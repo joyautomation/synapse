@@ -6,31 +6,32 @@ import {
   SparkplugNode,
   SparkplugNodeScanRates,
 } from "../types.d.ts";
-import { curry, pipe } from "npm:ramda";
+import { curry, pipe } from "npm:ramda@0.30.1";
 import {
   createMqttClient,
   createSpbTopic,
   destroyMqttClient,
-  Modify,
+  type Modify,
   publishDeviceData,
   publishNodeBirth,
   publishNodeData,
   publishNodeDeath,
   subscribeCurry,
 } from "../mqtt.ts";
-import {
+import type {
   UMetric,
   UPayload,
 } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
-import { getUnixTime } from "npm:date-fns";
+import { getUnixTime } from "npm:date-fns@3.6.0";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
 import { getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
-import { Listener, NodeEvent, type NodeTransition } from "./types.d.ts";
+import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
-import mqtt, { MqttClientEventCallbacks, OnConnectCallback } from "npm:mqtt";
+import type mqtt from "npm:mqtt@5.10.1";
+import type { OnConnectCallback } from "npm:mqtt@5.10.1";
 
 const onConnect = (node: SparkplugNode) => {
   return () => {

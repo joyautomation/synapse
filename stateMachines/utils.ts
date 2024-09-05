@@ -1,14 +1,13 @@
-import EventEmitter from "node:events";
+import type EventEmitter from "node:events";
 import { log } from "../log.ts";
-import { Buffer } from "node:buffer";
+import type { Buffer } from "node:buffer";
 
-import {
+import type {
   SparkplugNode,
   SparkplugHost,
   ISparkplugEdgeOptions,
   ISparkplugHostOptions,
 } from "../types.d.ts";
-import { HostEvent, Listener, NodeEvent } from "./types.d.ts";
 import { handleMessage } from "../mqtt.ts";
 
 export const emit = (

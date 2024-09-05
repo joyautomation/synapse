@@ -1,6 +1,6 @@
 import EventEmitter from "node:events";
 import { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
-import { curry, pipe } from "npm:ramda";
+import { curry, pipe } from "npm:ramda@0.30.1";
 import { log } from "../log.ts";
 import {
   createHostMqttClient,
@@ -8,9 +8,9 @@ import {
   publishHostOnline,
   subscribeCurry,
 } from "../mqtt.ts";
-import mqtt from "npm:mqtt";
+import type mqtt from "npm:mqtt@5.10.1";
 import { setStateCurry as setState } from "../utils.ts";
-import { HostTransition } from "./types.d.ts";
+import type { HostTransition } from "./types.d.ts";
 import { getMqttConfigFromSparkplug, onCurry } from "./utils.ts";
 import { onMessage } from "./utils.ts";
 

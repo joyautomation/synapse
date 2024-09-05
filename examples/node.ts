@@ -1,6 +1,6 @@
 import { nanoid } from "npm:nanoid";
 import { createNode } from "../stateMachines/node.ts";
-import {
+import type {
   SparkplugCreateDeviceInput,
   SparkplugCreateNodeInput,
   SparkplugMetric,

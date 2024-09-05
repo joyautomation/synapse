@@ -1,7 +1,7 @@
-import Long from "npm:long";
-import { pipe } from "npm:ramda";
-import { gzip, deflate, inflate, ungzip } from "npm:pako";
-import { CompressPayloadInput, PayloadOptions } from "./types.d.ts";
+import Long from "npm:long@5.2.3";
+import { pipe } from "npm:ramda@0.30.1";
+import { gzip, deflate, inflate, ungzip } from "npm:pako@2.0.0";
+import type { CompressPayloadInput, PayloadOptions } from "./types.d.ts";
 import {
   type UPayload,
   type UMetric,
@@ -10,7 +10,7 @@ import {
 } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
 import { cond } from "../utils.ts";
-import { Buffer } from "node:buffer";
+import type { Buffer } from "node:buffer";
 
 export const compressed = "SPBV1.0_COMPRESSED";
 

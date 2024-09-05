@@ -1,9 +1,9 @@
 import { describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import { createNode, disconnectNode } from "./node.ts";
-import { SparkplugCreateNodeInput, SparkplugNode } from "../types.d.ts";
-import mqtt, { IDisconnectPacket, MqttClient } from "npm:mqtt";
-import { createPayload } from "../mqtt.ts";
+import type { SparkplugCreateNodeInput, SparkplugNode } from "../types.d.ts";
+import type { IDisconnectPacket, MqttClient } from "npm:mqtt@5.10.1";
+import type mqtt from "npm:mqtt@5.10.1";
 import { assertSpyCalls, spy, stub } from "jsr:@std/testing/mock";
 import { EventEmitter } from "node:events";
 import { _internals } from "../mqtt.ts";

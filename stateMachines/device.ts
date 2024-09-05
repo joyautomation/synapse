@@ -1,15 +1,19 @@
 import EventEmitter from "node:events";
-import { curry, pipe } from "npm:ramda";
-import { UPayload } from "npm:sparkplug-payload/lib/sparkplugbpayload.ts";
+import { curry, pipe } from "npm:ramda@0.30.1";
+import type { UPayload } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
 import {
-  Modify,
+  type Modify,
   publishDeviceBirth,
   publishDeviceDeath,
   publishDeviceData as publishMqttDeviceData,
 } from "../mqtt.ts";
 import { getNodeStateString } from "./node.ts";
-import { SparkplugDevice, SparkplugMetric, SparkplugNode } from "../types.d.ts";
+import type {
+  SparkplugDevice,
+  SparkplugMetric,
+  SparkplugNode,
+} from "../types.d.ts";
 import { setStateCurry as setState } from "../utils.ts";
 import { getMqttConfigFromSparkplug } from "./utils.ts";
 
