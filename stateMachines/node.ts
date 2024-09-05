@@ -6,7 +6,7 @@ import type {
   SparkplugNode,
   SparkplugNodeScanRates,
 } from "../types.d.ts";
-import { curry, pipe } from "npm:ramda";
+import { curry, pipe } from "npm:ramda@0.30.1";
 import {
   createMqttClient,
   createSpbTopic,
@@ -21,17 +21,17 @@ import {
 import type {
   UMetric,
   UPayload,
-} from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+} from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
-import { getUnixTime } from "npm:date-fns";
+import { getUnixTime } from "npm:date-fns@3.6.0";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
 import { getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
 import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
-import type mqtt from "npm:mqtt";
-import type { OnConnectCallback } from "npm:mqtt";
+import type mqtt from "npm:mqtt@5.10.1";
+import type { OnConnectCallback } from "npm:mqtt@5.10.1";
 
 /**
  * Handles the connection event for a Sparkplug node.

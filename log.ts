@@ -1,4 +1,4 @@
-import { LogLevel, createLogger } from "jsr:@joyautomation/coral";
+import { LogLevel, createLogger } from "jsr:@joyautomation/coral@0.0.7";
 
 /**
  * Determines the log level based on the environment variable.

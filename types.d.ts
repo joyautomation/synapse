@@ -1,6 +1,6 @@
 import type { IClientOptions } from "npm:mqtt";
-import mqtt from "npm:mqtt";
-import { UMetric } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+import type mqtt from "npm:mqtt";
+import type { UMetric } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
 import type { EventEmitter } from "node:events";
 import type { PayloadOptions } from "./compression/types.d.ts";
 

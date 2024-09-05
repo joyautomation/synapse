@@ -1,5 +1,5 @@
-import { type Buffer } from "node:buffer";
-import { type UPayload } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+import type { Buffer } from "node:buffer";
+import type { UPayload } from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
 
 export type HostTransition = "connect" | "disconnect";
 
