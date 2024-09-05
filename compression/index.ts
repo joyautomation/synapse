@@ -1,13 +1,13 @@
-import Long from "npm:long@5.2.3";
-import { pipe } from "npm:ramda@0.30.1";
-import { gzip, deflate, inflate, ungzip } from "npm:pako@2.1.0";
+import Long from "npm:long";
+import { pipe } from "npm:ramda";
+import { gzip, deflate, inflate, ungzip } from "npm:pako";
 import type { CompressPayloadInput, PayloadOptions } from "./types.d.ts";
 import {
   type UPayload,
   type UMetric,
   encodePayload,
   decodePayload,
-} from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
+} from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
 import { cond } from "../utils.ts";
 import type { Buffer } from "node:buffer";

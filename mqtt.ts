@@ -1,4 +1,4 @@
-import * as mqtt from "npm:mqtt@5.10.1";
+import * as mqtt from "npm:mqtt";
 import {
   ISparkplugEdgeOptions,
   ISparkplugHostOptions,
@@ -6,7 +6,7 @@ import {
   SparkplugNode,
 } from "./types.d.ts";
 import * as sparkplug from "npm:sparkplug-payload@1.0.3";
-import { pipe } from "npm:ramda@0.30.1";
+import { pipe } from "npm:ramda";
 import { log } from "./log.ts";
 import type { UPayload } from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
 import {

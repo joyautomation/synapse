@@ -4,6 +4,7 @@
     "specifiers": {
       "jsr:@joyautomation/coral": "jsr:@joyautomation/coral@0.0.7",
       "jsr:@joyautomation/coral@0.0.7": "jsr:@joyautomation/coral@0.0.7",
+      "jsr:@joyautomation/coral@^0.0.7": "jsr:@joyautomation/coral@0.0.7",
       "jsr:@std/assert@1": "jsr:@std/assert@1.0.3",
       "jsr:@std/assert@^1.0.3": "jsr:@std/assert@1.0.3",
       "jsr:@std/expect": "jsr:@std/expect@1.0.1",
@@ -13,18 +14,24 @@
       "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:date-fns": "npm:date-fns@3.6.0",
       "npm:date-fns@3.6.0": "npm:date-fns@3.6.0",
+      "npm:date-fns@^3.6.0": "npm:date-fns@3.6.0",
       "npm:long": "npm:long@4.0.0",
       "npm:long@5.2.3": "npm:long@5.2.3",
+      "npm:long@^5.2.3": "npm:long@5.2.3",
       "npm:mqtt": "npm:mqtt@5.10.1",
       "npm:mqtt@5.10.1": "npm:mqtt@5.10.1",
+      "npm:mqtt@^5.10.1": "npm:mqtt@5.10.1",
       "npm:nanoid": "npm:nanoid@5.0.7",
       "npm:pako": "npm:pako@2.1.0",
       "npm:pako@2.1.0": "npm:pako@2.1.0",
+      "npm:pako@^2.1.0": "npm:pako@2.1.0",
       "npm:ramda": "npm:ramda@0.30.1",
       "npm:ramda@0.30.1": "npm:ramda@0.30.1",
+      "npm:ramda@^0.30.1": "npm:ramda@0.30.1",
       "npm:sinon": "npm:sinon@18.0.0",
       "npm:sparkplug-payload": "npm:sparkplug-payload@1.0.3",
-      "npm:sparkplug-payload@1.0.3": "npm:sparkplug-payload@1.0.3"
+      "npm:sparkplug-payload@1.0.3": "npm:sparkplug-payload@1.0.3",
+      "npm:sparkplug-payload@^1.0.3": "npm:sparkplug-payload@1.0.3"
     },
     "jsr": {
       "@joyautomation/coral@0.0.7": {
@@ -491,7 +498,14 @@
   "remote": {},
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@1"
+      "jsr:@joyautomation/coral@^0.0.7",
+      "jsr:@std/assert@1",
+      "npm:date-fns@^3.6.0",
+      "npm:long@^5.2.3",
+      "npm:mqtt@^5.10.1",
+      "npm:pako@^2.1.0",
+      "npm:ramda@^0.30.1",
+      "npm:sparkplug-payload@^1.0.3"
     ]
   }
 }
