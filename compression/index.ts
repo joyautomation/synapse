@@ -7,7 +7,7 @@ import {
   type UMetric,
   encodePayload,
   decodePayload,
-} from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+} from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
 import { cond } from "../utils.ts";
 import type { Buffer } from "node:buffer";

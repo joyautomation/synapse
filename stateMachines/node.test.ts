@@ -54,9 +54,6 @@ describe("Node", () => {
   stub(console, "log");
   it("creates a node with correct properties", () => {
     const mockClient = new EventEmitter() as unknown as mqtt.MqttClient;
-    const disconnectPacket: IDisconnectPacket = {
-      cmd: "disconnect",
-    };
     mockClient.subscribe = spy() as typeof MqttClient.prototype.subscribe;
     mockClient.unsubscribe = spy() as typeof MqttClient.prototype.unsubscribe;
     mockClient.publish = spy() as typeof MqttClient.prototype.publish;

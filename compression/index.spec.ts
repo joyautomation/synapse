@@ -4,7 +4,7 @@ import { compressPayload, decompressPayload, hasAlgorithm } from "./index.ts";
 import {
   type UPayload,
   encodePayload,
-} from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+} from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
 import { gzip, deflate } from "npm:pako@2.1.0";
 
 describe("hasAlgorithm", () => {

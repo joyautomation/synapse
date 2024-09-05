@@ -1,4 +1,4 @@
-import { LogLevel, createLogger } from "jsr:@joyautomation/coral";
+import { LogLevel, createLogger } from "jsr:@joyautomation/coral@0.0.7";
 
 function getLogLevel(): LogLevel {
   const envLogLevel = Deno.env.get("NEURON_LOG_LEVEL");

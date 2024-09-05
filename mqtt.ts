@@ -1,23 +1,21 @@
-import * as mqtt from "npm:mqtt";
+import * as mqtt from "npm:mqtt@5.10.1";
 import {
-  ISparkplugBaseOptions,
   ISparkplugEdgeOptions,
   ISparkplugHostOptions,
   SparkplugHost,
   SparkplugNode,
 } from "./types.d.ts";
-import * as sparkplug from "npm:sparkplug-payload";
-import { pipe } from "npm:ramda";
+import * as sparkplug from "npm:sparkplug-payload@1.0.3";
+import { pipe } from "npm:ramda@0.30.1";
 import { log } from "./log.ts";
-import type { UPayload } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+import type { UPayload } from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
 import {
-  compressPayload,
   compressPayloadCurry as compressPayloadCurry,
   decompressPayload,
 } from "./compression/index.ts";
 import type { PayloadOptions } from "./compression/types.d.ts";
 import { cond } from "./utils.ts";
-import { EventEmitter } from "node:events";
+import type { EventEmitter } from "node:events";
 import { Buffer } from "node:buffer";
 
 //wrapper functions to make it easier to test
