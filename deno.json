@@ -1,0 +1,18 @@
+{
+  "name": "@joyautomation/neuron",
+  "version": "0.0.0",
+  "description": "Neuron is a tool for creating and managing neural networks.",
+  "author": "Joy Automation",
+  "license": "GPL-3.0-or-later",
+  "repository": "github:joyautomation/neuron",
+  "homepage": "https://github.com/joyautomation/neuron#readme",
+  "bugs": "https://github.com/joyautomation/neuron/issues",
+  "exports": "./index.ts",
+  "tasks": {
+    "example:host": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/host.ts ",
+    "example:node": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/node.ts "
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  }
+}
