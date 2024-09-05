@@ -1,6 +1,11 @@
 import { LogLevel, createLogger } from "jsr:@joyautomation/coral";
 
-export const log = createLogger(
-  "neuron",
-  Deno.env.get("NEURON_LOG_LEVEL") || LogLevel.info
-);
+function getLogLevel(): LogLevel {
+  const envLogLevel = Deno.env.get("NEURON_LOG_LEVEL");
+  if (envLogLevel && envLogLevel in LogLevel) {
+    return LogLevel[envLogLevel as keyof typeof LogLevel];
+  }
+  return LogLevel.info;
+}
+
+export const log = createLogger("neuron", getLogLevel());

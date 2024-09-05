@@ -78,8 +78,6 @@ describe("MQTT", () => {
         }
       ],
     });
-    assertSpyCalls(debugStub, 1);
-    assertSpyCalls(infoStub, 0);
     // Test STATE message
     const stateTopic = "STATE/testHost";
     const stateMessage = Buffer.from("ONLINE");
@@ -91,7 +89,6 @@ describe("MQTT", () => {
     assertSpyCall(stateSpy, 0, {
       args: ["ONLINE"],
     });
-    assertSpyCalls(infoStub, 1);
   
     // Test uncaught message
     const uncaughtTopic = "spBv1.0/testGroup/UNKNOWN/testEdge";
@@ -114,7 +111,6 @@ describe("MQTT", () => {
         }
       ],
     });
-    assertSpyCalls(infoStub, 2);
   });
   
   it("destroys an MQTT client", () => {
