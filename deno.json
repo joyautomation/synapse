@@ -11,7 +11,8 @@
   "exports": "./index.ts",
   "tasks": {
     "example:host": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/host.ts ",
-    "example:node": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/node.ts "
+    "example:node": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/node.ts ",
+    "test": "deno test --allow-env --allow-net --allow-read --allow-write --watch"
   },
   "imports": {
     "@joyautomation/coral": "jsr:@joyautomation/coral@^0.0.7",
