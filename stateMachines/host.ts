@@ -163,7 +163,9 @@ const changeHostState = curry(
       );
     } else {
       log.info(
-        `transitioning from ${getHostStateString(host)} to ${transition}`
+        `Host ${host.id} transitioning from ${getHostStateString(
+          host
+        )} to ${transition}`
       );
       hostTransitions[transition](host);
     }
