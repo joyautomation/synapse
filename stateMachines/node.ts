@@ -27,11 +27,16 @@ import { getUnixTime } from "npm:date-fns@3.6.0";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
-import { getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
+import { flatten, getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
 import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "npm:mqtt@5.10.1";
 import type { OnConnectCallback } from "npm:mqtt@5.10.1";
+import { createLogger } from "@joyautomation/coral";
+import { getLogLevel } from "../log.ts";
+
+const logRbe = createLogger("rbe", getLogLevel());
+const isLogRbeEnabled = Boolean(Deno.env.get("NEURON_RBE_LOG_ENABLED")) == true;
 
 /**
  * Handles the connection event for a Sparkplug node.
@@ -152,7 +157,7 @@ const nodeTransitions = {
         node.bdseq,
         node.seq,
         undefined,
-        getNodeBirthPayload(Object.values(node.metrics)),
+        getNodeBirthPayload(flatten(node.metrics)),
         getMqttConfigFromSparkplug(node),
         node.mqtt
       );
@@ -341,6 +346,106 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
   );
 
 /**
+ * Sets the last published timestamp and value for a given metric in a Sparkplug Node or Device.
+ *
+ * @param {SparkplugNode | SparkplugDevice} parent - The parent node or device containing the metric.
+ * @param {SparkplugMetric} metric - The metric to update.
+ */
+export const setLastPublished = (
+  parent: SparkplugNode | SparkplugDevice,
+  metric: SparkplugMetric
+) => {
+  if (metric.name && metric.value)
+    parent.metrics[metric.name].lastPublished = {
+      timestamp: getUnixTime(new Date()),
+      value: metric.value,
+    };
+};
+
+/**
+ * Determines if a given Sparkplug metric type represents a numeric value.
+ *
+ * @param {SparkplugMetric["type"]} metricType - The type of the Sparkplug metric to check.
+ * @returns {boolean} True if the metric type is numeric, false otherwise.
+ *
+ * @description
+ * This function checks if the provided metric type is one of the following numeric types:
+ * Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Float, or Double.
+ * It's used to determine if a metric can be subject to numeric operations or comparisons.
+ */
+const isNumberType = (metricType: SparkplugMetric["type"]): boolean =>
+  [
+    "Int8",
+    "Int16",
+    "Int32",
+    "Int64",
+    "UInt8",
+    "UInt16",
+    "UInt32",
+    "UInt64",
+    "Float",
+    "Double",
+  ].includes(metricType);
+
+/**
+ * Determines if a metric needs to be published based on its deadband settings and last published value.
+ *
+ * @param {SparkplugMetric} metric - The metric to evaluate.
+ * @returns {boolean} True if the metric needs to be published, false otherwise.
+ *
+ * @description
+ * This function checks if a metric needs to be published based on the following criteria:
+ * 1. If the metric has never been published before (no lastPublished data).
+ * 2. If the metric's current value is different from its last published value.
+ * 3. If the metric's type is not a number type or it doesn't have deadband settings.
+ * 4. For numeric metrics with deadband settings:
+ *    a. If the time since last publish exceeds the maximum time specified in the deadband.
+ *    b. If the difference between the current value and last published value exceeds the deadband value.
+ *
+ * The function handles both numeric and non-numeric metric types, applying appropriate comparison logic for each.
+ */
+const metricNeedsToPublish = (metric: SparkplugMetric) => {
+  if (
+    !metric.lastPublished ||
+    metric.lastPublished.value == null ||
+    !isNumberType(metric.type) ||
+    !metric.deadband
+  ) {
+    if (metric.value !== metric.lastPublished?.value) {
+      if (isLogRbeEnabled)
+        logRbe.debug(
+          `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`
+        );
+      return true;
+    }
+  }
+
+  const now = getUnixTime(new Date());
+  const timeSinceLastPublish = now - metric.lastPublished.timestamp;
+  const valueDifference = Math.abs(
+    (metric.value as number) - Number(metric.lastPublished.value)
+  );
+
+  if (metric.deadband?.value && valueDifference > metric.deadband.value) {
+    if (isLogRbeEnabled)
+      logRbe.debug(
+        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`
+      );
+    return true;
+  } else if (
+    metric.deadband?.maxTime &&
+    timeSinceLastPublish > metric.deadband.maxTime
+  ) {
+    if (isLogRbeEnabled)
+      logRbe.debug(
+        `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`
+      );
+    return true;
+  }
+  return false;
+};
+
+/**
  * Publishes metrics for a Sparkplug node and its devices.
  * @param {SparkplugNode} node - The Sparkplug node to publish metrics for.
  * @param {number} [scanRate] - The scan rate to filter metrics by.
@@ -351,27 +456,25 @@ export const publishMetrics = (
   scanRate?: number,
   metricSelector: (metric: SparkplugMetric) => boolean = () => true
 ) => {
-  const nodeMetrics = Object.values(node.metrics).filter(
-    (metric) => metric.scanRate === scanRate
+  const nodeMetrics = flatten(node.metrics).filter(
+    (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric)
   );
   if (nodeMetrics.length > 0 && node.mqtt)
     publishNodeData(
       node,
       {
-        metrics: Object.values(node.metrics).filter(
-          (metric) =>
-            metricSelector(metric) &&
-            (scanRate == null || metric.scanRate === scanRate)
-        ),
+        metrics: nodeMetrics,
       },
       getMqttConfigFromSparkplug(node),
       node.mqtt
     );
-  Object.values(node.devices).forEach((device) => {
-    const metrics = Object.values(device.metrics).filter(
+  nodeMetrics.forEach((metric) => setLastPublished(node, metric));
+  flatten(node.devices).forEach((device) => {
+    const metrics = flatten(device.metrics).filter(
       (metric) =>
         metricSelector(metric) &&
-        (scanRate == null || metric.scanRate === scanRate)
+        (scanRate == null || metric.scanRate === scanRate) &&
+        metricNeedsToPublish(metric)
     );
     if (metrics.length > 0 && node.mqtt) {
       publishDeviceData(
@@ -381,6 +484,7 @@ export const publishMetrics = (
         node.mqtt,
         device.id
       );
+      metrics.forEach((metric) => setLastPublished(device, metric));
     }
   });
 };
@@ -394,9 +498,9 @@ export const startScans = (node: SparkplugNode) => {
   const scanRates = [
     ...new Set(
       [
-        ...Object.values(node.metrics),
-        ...Object.values(node.devices).reduce(
-          (acc, devices) => acc.concat(Object.values(devices.metrics)),
+        ...flatten(node.metrics),
+        ...flatten(node.devices).reduce(
+          (acc, devices) => acc.concat(flatten(devices.metrics)),
           [] as SparkplugMetric[]
         ),
       ].map((metric) => metric.scanRate)
@@ -435,7 +539,7 @@ export const createNode = (config: SparkplugCreateNodeInput): SparkplugNode => {
       connected: { born: false, dead: false },
       disconnected: true,
     },
-    devices: Object.values(config.devices).reduce((acc, { id, metrics }) => {
+    devices: flatten(config.devices).reduce((acc, { id, metrics }) => {
       acc[id] = createDevice(id, metrics);
       return acc;
     }, {} as { [id: string]: SparkplugDevice }),

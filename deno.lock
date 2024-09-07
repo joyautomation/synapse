@@ -11,6 +11,7 @@
       "jsr:@std/fmt@1.0.1": "jsr:@std/fmt@1.0.1",
       "jsr:@std/internal@^1.0.2": "jsr:@std/internal@1.0.2",
       "jsr:@std/testing": "jsr:@std/testing@1.0.1",
+      "npm:@joyautomation/coral": "npm:@joyautomation/coral@0.0.12",
       "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:date-fns": "npm:date-fns@3.6.0",
       "npm:date-fns@3.6.0": "npm:date-fns@3.6.0",
@@ -22,6 +23,7 @@
       "npm:mqtt@5.10.1": "npm:mqtt@5.10.1",
       "npm:mqtt@^5.10.1": "npm:mqtt@5.10.1",
       "npm:nanoid": "npm:nanoid@5.0.7",
+      "npm:nanoid@5.0.7": "npm:nanoid@5.0.7",
       "npm:pako": "npm:pako@2.1.0",
       "npm:pako@2.1.0": "npm:pako@2.1.0",
       "npm:pako@^2.1.0": "npm:pako@2.1.0",
@@ -71,6 +73,14 @@
         "integrity": "sha512-VBj9MYyDb9tuLq7yzqjgzt6Q+IBQLrGZfdjOekyEirZPHxXWoTSGUTMrpsfi58Up73d13NfYLv8HT9vmznjzhQ==",
         "dependencies": {
           "regenerator-runtime": "regenerator-runtime@0.14.1"
+        }
+      },
+      "@joyautomation/coral@0.0.12": {
+        "integrity": "sha512-T/6cNBQ5daMXE3oBX+tBdESeaTk/O3msH+xaUwMGews2XcjrAqbG7Ru+TFTXhDSkPGVl1ZN5XdwQJtE4gLk42Q==",
+        "dependencies": {
+          "chalk": "chalk@5.3.0",
+          "date-fns": "date-fns@3.6.0",
+          "ramda": "ramda@0.30.1"
         }
       },
       "@protobufjs/aspromise@1.1.2": {
@@ -196,6 +206,10 @@
           "base64-js": "base64-js@1.5.1",
           "ieee754": "ieee754@1.2.1"
         }
+      },
+      "chalk@5.3.0": {
+        "integrity": "sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==",
+        "dependencies": {}
       },
       "commist@3.2.0": {
         "integrity": "sha512-4PIMoPniho+LqXmpS5d3NuGYncG6XWlkBSVGiWycL22dd42OYdUGil2CWuzklaJoNxyxUSpO4MKIBU94viWNAw==",

@@ -130,6 +130,6 @@ export interface SparkplugMetric extends UMetric {
   };
   lastPublished?: {
     timestamp: number;
-    value: number | string | boolean;
+    value: UMetric["value"];
   };
 }

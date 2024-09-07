@@ -22,13 +22,17 @@ const nodeMetrics: { [id: string]: SparkplugMetric } = {
 };
 
 const metrics: { [id: string]: SparkplugMetric } = {
-  testMetric: {
+  testMetric1: {
     name: "testMetric1",
     type: "Boolean",
     value: true,
     scanRate: 1000,
   },
   testMetric2: {
+    deadband: {
+      value: 3,
+      maxTime: 60,
+    },
     name: "testMetric2",
     type: "Float",
     value: 1,
@@ -61,6 +65,6 @@ setInterval(() => {
   if (typeof nodeMetrics["testNodeMetric1"].value === "number")
     node.metrics["testNodeMetric1"].value =
       nodeMetrics["testNodeMetric1"].value + 1;
-  if (typeof metrics["testMetric"].value === "number")
-    metrics["testMetric"].value = metrics["testMetric"].value + 1;
+  if (typeof metrics["testMetric2"].value === "number")
+    metrics["testMetric2"].value = metrics["testMetric2"].value + 1;
 }, 5000);

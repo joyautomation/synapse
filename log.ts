@@ -4,7 +4,7 @@ import { LogLevel, createLogger } from "jsr:@joyautomation/coral@0.0.7";
  * Determines the log level based on the environment variable.
  * @returns {LogLevel} The determined log level.
  */
-function getLogLevel(): LogLevel {
+export function getLogLevel(): LogLevel {
   const envLogLevel = Deno.env.get("NEURON_LOG_LEVEL");
   if (envLogLevel && envLogLevel in LogLevel) {
     return LogLevel[envLogLevel as keyof typeof LogLevel];
