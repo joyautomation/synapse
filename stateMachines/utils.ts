@@ -44,7 +44,7 @@ export const on = <T extends { on: (event: U, listener: V) => void }, U, V>(
   listener: V,
   emitter: T
 ): T => {
-  log.info(`on ${event} added`);
+  log.debug(`on ${event} added`);
   emitter.on(event, listener);
   return emitter;
 };

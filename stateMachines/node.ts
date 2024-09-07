@@ -259,7 +259,9 @@ const changeNodeState = curry(
       );
     } else {
       log.info(
-        `transitioning from ${getNodeStateString(node)} to ${transition}`
+        `Node ${node.id} transitioning from ${getNodeStateString(
+          node
+        )} to ${transition}`
       );
       nodeTransitions[transition](node);
     }
