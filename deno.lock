@@ -2,15 +2,20 @@
   "version": "3",
   "packages": {
     "specifiers": {
-      "jsr:@joyautomation/coral": "jsr:@joyautomation/coral@0.0.7",
-      "jsr:@joyautomation/coral@0.0.7": "jsr:@joyautomation/coral@0.0.7",
-      "jsr:@joyautomation/coral@^0.0.7": "jsr:@joyautomation/coral@0.0.7",
-      "jsr:@std/assert@1": "jsr:@std/assert@1.0.3",
+      "jsr:@joyautomation/coral@^0.0.10": "jsr:@joyautomation/coral@0.0.10",
+      "jsr:@std/assert@1": "jsr:@std/assert@1.0.4",
       "jsr:@std/assert@^1.0.3": "jsr:@std/assert@1.0.3",
+      "jsr:@std/assert@^1.0.4": "jsr:@std/assert@1.0.4",
+      "jsr:@std/data-structures@^1.0.2": "jsr:@std/data-structures@1.0.2",
       "jsr:@std/expect": "jsr:@std/expect@1.0.1",
+      "jsr:@std/expect@^1.0.2": "jsr:@std/expect@1.0.2",
       "jsr:@std/fmt@1.0.1": "jsr:@std/fmt@1.0.1",
+      "jsr:@std/fs@^1.0.3": "jsr:@std/fs@1.0.3",
       "jsr:@std/internal@^1.0.2": "jsr:@std/internal@1.0.2",
+      "jsr:@std/internal@^1.0.3": "jsr:@std/internal@1.0.3",
+      "jsr:@std/path@^1.0.4": "jsr:@std/path@1.0.4",
       "jsr:@std/testing": "jsr:@std/testing@1.0.1",
+      "jsr:@std/testing@^1.0.2": "jsr:@std/testing@1.0.2",
       "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:date-fns": "npm:date-fns@3.6.0",
       "npm:date-fns@3.6.0": "npm:date-fns@3.6.0",
@@ -35,8 +40,8 @@
       "npm:sparkplug-payload@^1.0.3": "npm:sparkplug-payload@1.0.3"
     },
     "jsr": {
-      "@joyautomation/coral@0.0.7": {
-        "integrity": "89fab0e43aabe912fa3e90f2fb73cccf1955ef64623a04740d729865c9579edd",
+      "@joyautomation/coral@0.0.10": {
+        "integrity": "1edfd32114d2173bf4df0eedda893d7c63cb84c221489c1742e4f043f9dca540",
         "dependencies": [
           "jsr:@std/fmt@1.0.1"
         ]
@@ -47,6 +52,15 @@
           "jsr:@std/internal@^1.0.2"
         ]
       },
+      "@std/assert@1.0.4": {
+        "integrity": "d4c767ea578e5bc09c15b6e503376003e5b2d1f4c0cdf08524a92101ff4d7b96",
+        "dependencies": [
+          "jsr:@std/internal@^1.0.3"
+        ]
+      },
+      "@std/data-structures@1.0.2": {
+        "integrity": "d586efced05ed91923514a192996d23673f32f695f7ebc37f0cc1e17928be600"
+      },
       "@std/expect@1.0.1": {
         "integrity": "44075d9c2cb701ddfc4d5a260da2fb26ba3cfd94c45d3a0359f63cabbf85a058",
         "dependencies": [
@@ -54,16 +68,45 @@
           "jsr:@std/internal@^1.0.2"
         ]
       },
+      "@std/expect@1.0.2": {
+        "integrity": "37d5162eb1d30505e09f77f3fabbf6cde1e81ed0e72d2371cddbce1173eb86b4",
+        "dependencies": [
+          "jsr:@std/assert@^1.0.4",
+          "jsr:@std/internal@^1.0.3"
+        ]
+      },
       "@std/fmt@1.0.1": {
         "integrity": "ef76c37faa7720faa8c20fd8cc74583f9b1e356dfd630c8714baa716a45856ab"
       },
+      "@std/fs@1.0.3": {
+        "integrity": "3cb839b1360b0a42d8b367c3093bfe4071798e6694fa44cf1963e04a8edba4fe",
+        "dependencies": [
+          "jsr:@std/path@^1.0.4"
+        ]
+      },
       "@std/internal@1.0.2": {
         "integrity": "f4cabe2021352e8bfc24e6569700df87bf070914fc38d4b23eddd20108ac4495"
+      },
+      "@std/internal@1.0.3": {
+        "integrity": "208e9b94a3d5649bd880e9ca38b885ab7651ab5b5303a56ed25de4755fb7b11e"
+      },
+      "@std/path@1.0.4": {
+        "integrity": "48dd5d8389bcfcd619338a01bdf862cb7799933390146a54ae59356a0acc7105"
       },
       "@std/testing@1.0.1": {
         "integrity": "9c25841137ee818933e1722091bb9ed5fdc251c35e84c97979a52196bdb6c5c3",
         "dependencies": [
           "jsr:@std/assert@^1.0.3"
+        ]
+      },
+      "@std/testing@1.0.2": {
+        "integrity": "9e8a7f4e26c219addabe7942d09c3450fa0a74e9662341961bc0ef502274dec3",
+        "dependencies": [
+          "jsr:@std/assert@^1.0.4",
+          "jsr:@std/data-structures@^1.0.2",
+          "jsr:@std/fs@^1.0.3",
+          "jsr:@std/internal@^1.0.3",
+          "jsr:@std/path@^1.0.4"
         ]
       }
     },
@@ -503,8 +546,10 @@
   "remote": {},
   "workspace": {
     "dependencies": [
-      "jsr:@joyautomation/coral@^0.0.7",
+      "jsr:@joyautomation/coral@^0.0.10",
       "jsr:@std/assert@1",
+      "jsr:@std/expect@^1.0.2",
+      "jsr:@std/testing@^1.0.2",
       "npm:date-fns@^3.6.0",
       "npm:long@^5.2.3",
       "npm:mqtt@^5.10.1",

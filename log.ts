@@ -1,4 +1,5 @@
-import { LogLevel, createLogger } from "jsr:@joyautomation/coral@0.0.7";
+import { createLogger, LogLevel } from "@joyautomation/coral";
+import { setLogLevel as setCoralLogLevel } from "@joyautomation/coral";
 
 /**
  * Determines the log level based on the environment variable.
@@ -17,3 +18,7 @@ export function getLogLevel(): LogLevel {
  * The log level is determined by the getLogLevel function.
  */
 export const log = createLogger("neuron", getLogLevel());
+
+export const setLogLevel = (level: LogLevel) => {
+  return setCoralLogLevel(log, level);
+};

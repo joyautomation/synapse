@@ -6,7 +6,7 @@ import type {
   SparkplugNode,
   SparkplugNodeScanRates,
 } from "../types.d.ts";
-import { curry, pipe } from "npm:ramda@0.30.1";
+import { curry, pipe } from "ramda";
 import {
   createMqttClient,
   createSpbTopic,
@@ -21,17 +21,17 @@ import {
 import type {
   UMetric,
   UPayload,
-} from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
 import { log } from "../log.ts";
-import { getUnixTime } from "npm:date-fns@3.6.0";
+import { getUnixTime } from "date-fns";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
 import { flatten, getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
 import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
-import type mqtt from "npm:mqtt@5.10.1";
-import type { OnConnectCallback } from "npm:mqtt@5.10.1";
+import type mqtt from "mqtt";
+import type { OnConnectCallback } from "mqtt";
 import { createLogger } from "@joyautomation/coral";
 import { getLogLevel } from "../log.ts";
 
@@ -47,7 +47,7 @@ const onConnect = (node: SparkplugNode) => {
   return () => {
     setNodeStateConnected(node);
     log.info(
-      `${node.id} connected to ${node.brokerUrl} with user ${node.username}`
+      `${node.id} connected to ${node.brokerUrl} with user ${node.username}`,
     );
     node.events.emit("connected");
     birthNode(node);
@@ -113,15 +113,15 @@ const setupNodeEvents = (node: SparkplugNode) => {
     pipe(
       onCurry<mqtt.MqttClient, "connect", OnConnectCallback>(
         "connect",
-        onConnect(node)
+        onConnect(node),
       ),
       onCurry<mqtt.MqttClient, "message", mqtt.OnMessageCallback>(
         "message",
-        onMessage(node)
+        onMessage(node),
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
-        onDisconnect(node)
+        onDisconnect(node),
       ),
       subscribeCurry(createSpbTopic("DCMD", getMqttConfigFromSparkplug(node)), {
         qos: 0,
@@ -129,7 +129,7 @@ const setupNodeEvents = (node: SparkplugNode) => {
       subscribeCurry(createSpbTopic("NCMD", getMqttConfigFromSparkplug(node)), {
         qos: 0,
       }),
-      subscribeCurry("STATE/#", { qos: 1 })
+      subscribeCurry("STATE/#", { qos: 1 }),
     )(node.mqtt);
   }
   on<
@@ -152,20 +152,22 @@ const nodeTransitions = {
     return setNodeStateDisconnected(node);
   },
   birth: (node: SparkplugNode) => {
-    if (node.mqtt)
+    if (node.mqtt) {
       publishNodeBirth(
         node.bdseq,
         node.seq,
         undefined,
         getNodeBirthPayload(flatten(node.metrics)),
         getMqttConfigFromSparkplug(node),
-        node.mqtt
+        node.mqtt,
       );
+    }
     return node;
   },
   death: (node: SparkplugNode) => {
-    if (node.mqtt)
+    if (node.mqtt) {
       publishNodeDeath(node.bdseq, getMqttConfigFromSparkplug(node), node.mqtt);
+    }
     return node;
   },
 };
@@ -208,7 +210,7 @@ const resetNodeState = (node: SparkplugNode) => {
 const deriveSetNodeState = (state: Partial<SparkplugNode["states"]>) =>
   pipe(
     resetNodeState,
-    setStateCurry<SparkplugNode, SparkplugNode["states"]>(state)
+    setStateCurry<SparkplugNode, SparkplugNode["states"]>(state),
   );
 
 /**
@@ -254,24 +256,28 @@ const changeNodeState = curry(
     inRequiredState: (node: SparkplugNode) => boolean,
     notInRequiredStateLogText: string,
     transition: NodeTransition,
-    node: SparkplugNode
+    node: SparkplugNode,
   ) => {
     if (!inRequiredState(node)) {
       log.info(
-        `${notInRequiredStateLogText}, it is currently: ${getNodeStateString(
-          node
-        )}`
+        `${notInRequiredStateLogText}, it is currently: ${
+          getNodeStateString(
+            node,
+          )
+        }`,
       );
     } else {
       log.info(
-        `Node ${node.id} transitioning from ${getNodeStateString(
-          node
-        )} to ${transition}`
+        `Node ${node.id} transitioning from ${
+          getNodeStateString(
+            node,
+          )
+        } to ${transition}`,
       );
       nodeTransitions[transition](node);
     }
     return node;
-  }
+  },
 );
 
 /**
@@ -280,7 +286,7 @@ const changeNodeState = curry(
  * @returns {UPayload} The node birth payload.
  */
 export const getNodeBirthPayload = (
-  metrics: UMetric[] | undefined
+  metrics: UMetric[] | undefined,
 ): UPayload => ({
   timestamp: getUnixTime(new Date()),
   metrics: [
@@ -303,9 +309,9 @@ const birthNode: (node: SparkplugNode) => SparkplugNode = pipe(
   changeNodeState(
     (node: SparkplugNode) => node.states.connected.dead,
     "Node needs to be dead to be born",
-    "birth"
+    "birth",
   ) as Modify<SparkplugNode>,
-  setNodeStateBorn as Modify<SparkplugNode>
+  setNodeStateBorn as Modify<SparkplugNode>,
 );
 
 /**
@@ -317,9 +323,9 @@ const killNode = pipe(
   changeNodeState(
     (node: SparkplugNode) => node.states.connected.born,
     "Node needs to be born to be dead",
-    "death"
+    "death",
   ) as Modify<SparkplugNode>,
-  setNodeStateDead
+  setNodeStateDead,
 );
 
 /**
@@ -330,7 +336,7 @@ const killNode = pipe(
 const connectNode = changeNodeState(
   (node: SparkplugNode) => node.states.disconnected,
   "Node needs to be disconnected to be connected",
-  "connect"
+  "connect",
 );
 
 /**
@@ -342,7 +348,7 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
   changeNodeState(
     (node: SparkplugNode) => someTrue(...Object.values(node.states.connected)),
     "Node needs to be connected to be disconnected",
-    "disconnect"
+    "disconnect",
   );
 
 /**
@@ -353,13 +359,14 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
  */
 export const setLastPublished = (
   parent: SparkplugNode | SparkplugDevice,
-  metric: SparkplugMetric
+  metric: SparkplugMetric,
 ) => {
-  if (metric.name && metric.value)
+  if (metric.name && metric.value) {
     parent.metrics[metric.name].lastPublished = {
       timestamp: getUnixTime(new Date()),
       value: metric.value,
     };
+  }
 };
 
 /**
@@ -412,10 +419,11 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
     !metric.deadband
   ) {
     if (metric.value !== metric.lastPublished?.value) {
-      if (isLogRbeEnabled)
+      if (isLogRbeEnabled) {
         logRbe.debug(
-          `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`
+          `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
         );
+      }
       return true;
     }
   }
@@ -423,23 +431,25 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
   const now = getUnixTime(new Date());
   const timeSinceLastPublish = now - metric.lastPublished.timestamp;
   const valueDifference = Math.abs(
-    (metric.value as number) - Number(metric.lastPublished.value)
+    (metric.value as number) - Number(metric.lastPublished.value),
   );
 
   if (metric.deadband?.value && valueDifference > metric.deadband.value) {
-    if (isLogRbeEnabled)
+    if (isLogRbeEnabled) {
       logRbe.debug(
-        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`
+        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
       );
+    }
     return true;
   } else if (
     metric.deadband?.maxTime &&
     timeSinceLastPublish > metric.deadband.maxTime
   ) {
-    if (isLogRbeEnabled)
+    if (isLogRbeEnabled) {
       logRbe.debug(
-        `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`
+        `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`,
       );
+    }
     return true;
   }
   return false;
@@ -454,27 +464,28 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
 export const publishMetrics = (
   node: SparkplugNode,
   scanRate?: number,
-  metricSelector: (metric: SparkplugMetric) => boolean = () => true
+  metricSelector: (metric: SparkplugMetric) => boolean = () => true,
 ) => {
   const nodeMetrics = flatten(node.metrics).filter(
-    (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric)
+    (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric),
   );
-  if (nodeMetrics.length > 0 && node.mqtt)
+  if (nodeMetrics.length > 0 && node.mqtt) {
     publishNodeData(
       node,
       {
         metrics: nodeMetrics,
       },
       getMqttConfigFromSparkplug(node),
-      node.mqtt
+      node.mqtt,
     );
+  }
   nodeMetrics.forEach((metric) => setLastPublished(node, metric));
   flatten(node.devices).forEach((device) => {
     const metrics = flatten(device.metrics).filter(
       (metric) =>
         metricSelector(metric) &&
         (scanRate == null || metric.scanRate === scanRate) &&
-        metricNeedsToPublish(metric)
+        metricNeedsToPublish(metric),
     );
     if (metrics.length > 0 && node.mqtt) {
       publishDeviceData(
@@ -482,7 +493,7 @@ export const publishMetrics = (
         { metrics },
         getMqttConfigFromSparkplug(node),
         node.mqtt,
-        device.id
+        device.id,
       );
       metrics.forEach((metric) => setLastPublished(device, metric));
     }
@@ -501,17 +512,18 @@ export const startScans = (node: SparkplugNode) => {
         ...flatten(node.metrics),
         ...flatten(node.devices).reduce(
           (acc, devices) => acc.concat(flatten(devices.metrics)),
-          [] as SparkplugMetric[]
+          [] as SparkplugMetric[],
         ),
-      ].map((metric) => metric.scanRate)
+      ].map((metric) => metric.scanRate),
     ),
   ];
   return scanRates.reduce((acc, scanRate) => {
-    if (scanRate != null)
+    if (scanRate != null) {
       acc[scanRate] = setInterval(
         () => publishMetrics(node, scanRate),
-        scanRate
+        scanRate,
       );
+    }
     return acc;
   }, {} as SparkplugNodeScanRates);
 };

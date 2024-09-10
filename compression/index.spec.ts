@@ -1,11 +1,11 @@
-import { describe, it } from "jsr:@std/testing/bdd";
-import { expect } from "jsr:@std/expect";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import { compressPayload, decompressPayload, hasAlgorithm } from "./index.ts";
 import {
-  type UPayload,
   encodePayload,
-} from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
-import { gzip, deflate } from "npm:pako@2.1.0";
+  type UPayload,
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
+import { deflate, gzip } from "pako";
 
 describe("hasAlgorithm", () => {
   it("returns true if there is a metric with the name algorithm", () => {
@@ -91,18 +91,18 @@ describe("compressPayload", () => {
   it("returns uncompressed payload and logs a message if compression algorithm is not supported.", () => {
     const badAlgorithm = "BadAlgorithm" as "GZIP";
     expect(
-      compressPayload({ compress: true, algorithm: badAlgorithm }, payload)
+      compressPayload({ compress: true, algorithm: badAlgorithm }, payload),
     ).toEqual(payload);
     expect(console.error).toBeCalledTimes(1);
   });
   it("GZIPs", () => {
     expect(
-      compressPayload({ compress: true, algorithm: "GZIP" }, payload)
+      compressPayload({ compress: true, algorithm: "GZIP" }, payload),
     ).toEqual(gzippedPayload);
   });
   it("DEFLATEs", () => {
     expect(
-      compressPayload({ compress: true, algorithm: "DEFLATE" }, payload)
+      compressPayload({ compress: true, algorithm: "DEFLATE" }, payload),
     ).toEqual(deflatedPayload);
   });
 });
