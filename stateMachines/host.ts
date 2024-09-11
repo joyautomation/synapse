@@ -1,6 +1,6 @@
 import EventEmitter from "node:events";
 import type { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
-import { curry, pipe } from "npm:ramda@0.30.1";
+import { curry, pipe } from "ramda";
 import { log } from "../log.ts";
 import {
   createHostMqttClient,
@@ -8,7 +8,7 @@ import {
   publishHostOnline,
   subscribeCurry,
 } from "../mqtt.ts";
-import type mqtt from "npm:mqtt@5.10.1";
+import type mqtt from "mqtt";
 import { setStateCurry as setState } from "../utils.ts";
 import type { HostTransition } from "./types.d.ts";
 import { getMqttConfigFromSparkplug, onCurry } from "./utils.ts";
@@ -24,7 +24,7 @@ export const onConnect = (host: SparkplugHost) => {
     setHostStateConnected(host);
     publishHostOnline(host);
     log.info(
-      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`
+      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`,
     );
     host.events.emit("connected");
   };
@@ -52,18 +52,18 @@ const setupHostEvents = (host: SparkplugHost) => {
     pipe(
       onCurry<mqtt.MqttClient, "connect", mqtt.OnConnectCallback>(
         "connect",
-        onConnect(host)
+        onConnect(host),
       ),
       onCurry<mqtt.MqttClient, "message", mqtt.OnMessageCallback>(
         "message",
-        onMessage(host)
+        onMessage(host),
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
-        onDisconnect(host)
+        onDisconnect(host),
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
-      subscribeCurry(`${host.version}/#`, { qos: 0 })
+      subscribeCurry(`${host.version}/#`, { qos: 0 }),
     )(host.mqtt);
   }
 };
@@ -153,24 +153,28 @@ const changeHostState = curry(
     inRequiredState: (host: SparkplugHost) => boolean,
     notInRequiredStateLogText: string,
     transition: HostTransition,
-    host: SparkplugHost
+    host: SparkplugHost,
   ) => {
     if (!inRequiredState(host)) {
       log.info(
-        `${notInRequiredStateLogText}, it is currently: ${getHostStateString(
-          host
-        )}`
+        `${notInRequiredStateLogText}, it is currently: ${
+          getHostStateString(
+            host,
+          )
+        }`,
       );
     } else {
       log.info(
-        `Host ${host.id} transitioning from ${getHostStateString(
-          host
-        )} to ${transition}`
+        `Host ${host.id} transitioning from ${
+          getHostStateString(
+            host,
+          )
+        } to ${transition}`,
       );
       hostTransitions[transition](host);
     }
     return host;
-  }
+  },
 );
 
 /**
@@ -181,7 +185,7 @@ const changeHostState = curry(
 const connectHost = changeHostState(
   (host: SparkplugHost) => host.states.disconnected,
   "Host needs to be disconnected to be connected",
-  "connect"
+  "connect",
 );
 
 /**
@@ -193,7 +197,7 @@ export const disconnectHost: (host: SparkplugHost) => SparkplugHost =
   changeHostState(
     (host: SparkplugHost) => host.states.connected,
     "Host needs to be connected to be disconnected",
-    "disconnect"
+    "disconnect",
   );
 
 /**

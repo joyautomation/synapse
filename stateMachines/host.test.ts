@@ -1,10 +1,10 @@
-import { describe, it } from "jsr:@std/testing/bdd";
-import { expect } from "jsr:@std/expect";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import { createHost, disconnectHost } from "./host.ts";
 import type { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
-import type { MqttClient } from "npm:mqtt";
-import type mqtt from "npm:mqtt";
-import { assertSpyCalls, spy, stub } from "jsr:@std/testing/mock";
+import type { MqttClient } from "mqtt";
+import type mqtt from "mqtt";
+import { assertSpyCalls, spy, stub } from "@std/testing/mock";
 import { _internals } from "../mqtt.ts";
 import { EventEmitter } from "node:events";
 
@@ -51,25 +51,25 @@ describe("The host state machine", () => {
       return mockClient as mqtt.MqttClient;
     });
 
-      host = await createHost(mockConfig);
-      assertSpyCalls(mqttConnectStub, 1);
+    host = await createHost(mockConfig);
+    assertSpyCalls(mqttConnectStub, 1);
 
-      expect(host).toBeDefined();
-      expect(host.id).toBe("testHost");
-      expect(host.brokerUrl).toBe("mqtt://test.mosquitto.org");
-      expect(host.clientId).toBe("testClient");
-      expect(host.username).toBe("testUser");
-      expect(host.password).toBe("testPass");
-      expect(host.version).toBe("spBv1.0");
-      expect(host.primaryHostId).toBe("primaryHost");
-      expect(host.seq).toBe(0);
-      expect(host.bdseq).toBe(0);
-      expect(host.states).toEqual({
-        connected: false,
-        disconnected: true,
-      });
-      expect(host.events).toBeDefined();
-      expect(host.mqtt).toBeDefined();
+    expect(host).toBeDefined();
+    expect(host.id).toBe("testHost");
+    expect(host.brokerUrl).toBe("mqtt://test.mosquitto.org");
+    expect(host.clientId).toBe("testClient");
+    expect(host.username).toBe("testUser");
+    expect(host.password).toBe("testPass");
+    expect(host.version).toBe("spBv1.0");
+    expect(host.primaryHostId).toBe("primaryHost");
+    expect(host.seq).toBe(0);
+    expect(host.bdseq).toBe(0);
+    expect(host.states).toEqual({
+      connected: false,
+      disconnected: true,
+    });
+    expect(host.events).toBeDefined();
+    expect(host.mqtt).toBeDefined();
   });
 
   it("changes to connected state when host connects", async () => {

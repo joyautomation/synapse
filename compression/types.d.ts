@@ -1,4 +1,4 @@
-import { type UPayload } from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
+import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
 
 export type CompressPayloadInput = {
   payload: UPayload;

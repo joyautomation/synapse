@@ -1,5 +1,5 @@
-import { describe, it } from "jsr:@std/testing/bdd";
-import { expect } from "jsr:@std/expect";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import { getMqttConfigFromSparkplug } from "./utils.ts";
 import type { SparkplugHost, SparkplugNode } from "../types.d.ts";
 
@@ -70,7 +70,7 @@ describe("getMqttConfigFromSparkplug", () => {
     } as any;
 
     expect(() => getMqttConfigFromSparkplug(invalidInput)).toThrow(
-      "Invalid input type"
+      "Invalid input type",
     );
   });
 });
