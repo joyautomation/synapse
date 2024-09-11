@@ -35,8 +35,8 @@ import type { OnConnectCallback } from "mqtt";
 import { createLogger } from "@joyautomation/coral";
 import { getLogLevel } from "../log.ts";
 
-const logRbe = createLogger("rbe", getLogLevel());
-const isLogRbeEnabled = Boolean(Deno.env.get("NEURON_RBE_LOG_ENABLED")) == true;
+import { logRbeEnabled } from "../log.ts";
+import { logRbe } from "../log.ts";
 
 /**
  * Handles the connection event for a Sparkplug node.
@@ -419,7 +419,7 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
     !metric.deadband
   ) {
     if (metric.value !== metric.lastPublished?.value) {
-      if (isLogRbeEnabled) {
+      if (logRbeEnabled) {
         logRbe.debug(
           `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
         );
@@ -435,7 +435,7 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
   );
 
   if (metric.deadband?.value && valueDifference > metric.deadband.value) {
-    if (isLogRbeEnabled) {
+    if (logRbeEnabled) {
       logRbe.debug(
         `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
       );
@@ -445,7 +445,7 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
     metric.deadband?.maxTime &&
     timeSinceLastPublish > metric.deadband.maxTime
   ) {
-    if (isLogRbeEnabled) {
+    if (logRbeEnabled) {
       logRbe.debug(
         `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`,
       );
