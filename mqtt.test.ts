@@ -14,9 +14,9 @@ import {
   handleMessage,
 } from "./mqtt.ts";
 import type { ISparkplugEdgeOptions } from "./types.d.ts";
-import type mqtt from "npm:mqtt";
+import type mqtt from "mqtt";
 import { EventEmitter } from "node:events";
-import type { UPayload } from "npm:sparkplug-payload/lib/sparkplugbpayload.js";
+import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import { Buffer } from "node:buffer";
 import { _internals } from "./mqtt.ts";
 
