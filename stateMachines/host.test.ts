@@ -83,7 +83,40 @@ describe("The host state machine", () => {
     });
   });
 
-  it("disconnects properly when we tell it to", async () => {
+  it("stores the groupId and nodeId of nbirth messages", async () => {
+    host.events.emit(
+      "nbirth",
+      { groupId: "testGroup", edgeNode: "testNode" },
+      {
+        metrics: [{ name: "testMetric", type: "testType", value: "testValue" }],
+      },
+    );
+    expect(host.groups["testGroup"]).toBeDefined();
+    expect(host.groups["testGroup"].nodes["testNode"]).toBeDefined();
+    expect(
+      host.groups["testGroup"].nodes["testNode"].metrics["testMetric"],
+    ).toBeDefined();
+  });
+
+  it("stores the deviceId of dbirth messages", async () => {
+    host.events.emit(
+      "dbirth",
+      { groupId: "testGroup", edgeNode: "testNode", deviceId: "testDevice" },
+      {
+        metrics: [{ name: "testMetric", type: "testType", value: "testValue" }],
+      },
+    );
+    expect(host.groups["testGroup"]).toBeDefined();
+    expect(host.groups["testGroup"].nodes["testNode"]).toBeDefined();
+    expect(host.groups["testGroup"].nodes["testNode"].devices["testDevice"])
+      .toBeDefined();
+    expect(
+      host.groups["testGroup"].nodes["testNode"].devices["testDevice"]
+        .metrics["testMetric"],
+    ).toBeDefined();
+  });
+
+  it("disconnects properly when we tell it to", () => {
     const mockOnDisconnect = spy();
     host.events.on("disconnected", mockOnDisconnect);
     disconnectHost(host);

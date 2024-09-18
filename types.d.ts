@@ -46,6 +46,7 @@ export interface SparkplugCreateBaseInput {
   id: string;
   version?: string;
   keepalive?: number;
+  payloadOptions?: PayloadOptions;
   mqttOptions?: Omit<
     IClientOptions,
     | "clientId"
@@ -64,7 +65,6 @@ export interface SparkplugCreateNodeInput extends SparkplugCreateBaseInput {
   metrics: {
     [id: string]: SparkplugMetric;
   };
-  payloadOptions?: PayloadOptions;
   devices: {
     [id: string]: SparkplugCreateDeviceInput;
   };
@@ -90,6 +90,26 @@ export interface SparkplugCreateHostInput extends SparkplugCreateBaseInput {
 }
 export interface SparkplugHost extends SparkplugBase {
   primaryHostId: string;
+  groups: {
+    [groupId: string]: SparkplugGroup;
+  };
+}
+
+export interface SparkplugGroup {
+  nodes: {
+    [nodeId: string]: {
+      metrics: {
+        [metricId: string]: UMetric;
+      };
+      devices: {
+        [deviceId: string]: {
+          metrics: {
+            [metricId: string]: UMetric;
+          };
+        };
+      };
+    };
+  };
 }
 
 export interface SparkplugNode extends SparkplugCreateNodeInput {

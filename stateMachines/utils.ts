@@ -3,10 +3,10 @@ import { log } from "../log.ts";
 import type { Buffer } from "node:buffer";
 
 import type {
-  SparkplugNode,
-  SparkplugHost,
   ISparkplugEdgeOptions,
   ISparkplugHostOptions,
+  SparkplugHost,
+  SparkplugNode,
 } from "../types.d.ts";
 import { handleMessage } from "../mqtt.ts";
 
@@ -19,7 +19,7 @@ import { handleMessage } from "../mqtt.ts";
 export const emit = (
   event: string,
   data: undefined | unknown,
-  emitter: EventEmitter
+  emitter: EventEmitter,
 ) => emitter.emit(event, data);
 
 /**
@@ -42,7 +42,7 @@ export const emitCurry =
 export const on = <T extends { on: (event: U, listener: V) => void }, U, V>(
   event: U,
   listener: V,
-  emitter: T
+  emitter: T,
 ): T => {
   log.debug(`on ${event} added`);
   emitter.on(event, listener);
@@ -58,10 +58,9 @@ export const on = <T extends { on: (event: U, listener: V) => void }, U, V>(
 export const onCurry =
   <T extends { on: (event: U, listener: V) => void }, U, V>(
     event: U,
-    listener: V
+    listener: V,
   ) =>
-  (emitter: T): T =>
-    on(event, listener, emitter);
+  (emitter: T): T => on(event, listener, emitter);
 
 /**
  * Retrieves the MQTT configuration from a Sparkplug Node or Host object.
@@ -81,13 +80,13 @@ export const onCurry =
  */
 
 export function getMqttConfigFromSparkplug(
-  input: SparkplugNode
+  input: SparkplugNode,
 ): ISparkplugEdgeOptions;
 export function getMqttConfigFromSparkplug(
-  input: SparkplugHost
+  input: SparkplugHost,
 ): ISparkplugHostOptions;
 export function getMqttConfigFromSparkplug(
-  input: SparkplugNode | SparkplugHost
+  input: SparkplugNode | SparkplugHost,
 ): ISparkplugEdgeOptions | ISparkplugHostOptions {
   const commonConfig = {
     clientId: input.clientId,
@@ -123,10 +122,9 @@ export function getMqttConfigFromSparkplug(
  */
 export const onMessage = (input: SparkplugNode | SparkplugHost) => {
   return (topic: string, message: Buffer) => {
-    const config =
-      "groupId" in input
-        ? getMqttConfigFromSparkplug(input as SparkplugNode)
-        : getMqttConfigFromSparkplug(input as SparkplugHost);
+    const config = "groupId" in input
+      ? getMqttConfigFromSparkplug(input as SparkplugNode)
+      : getMqttConfigFromSparkplug(input as SparkplugHost);
     handleMessage(topic, message, input.events, config);
   };
 };
@@ -149,4 +147,18 @@ export const flatten = <T>(obj: { [key: string]: T }) => {
     id: key,
     name: key,
   }));
+};
+
+export const unflatten = <T extends { name?: string | null }>(
+  arr?: T[] | null,
+): { [key: string]: T } => {
+  if (!arr) {
+    return {};
+  }
+  return arr.reduce((acc, item) => {
+    if (item.name) {
+      acc[item.name] = item;
+    }
+    return acc;
+  }, {} as { [key: string]: T });
 };

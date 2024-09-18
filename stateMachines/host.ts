@@ -6,13 +6,19 @@ import {
   createHostMqttClient,
   destroyMqttClient,
   publishHostOnline,
+  publishNodeCommand,
+  SpbTopic,
   subscribeCurry,
 } from "../mqtt.ts";
 import type mqtt from "mqtt";
-import { setStateCurry as setState } from "../utils.ts";
+import { cond, setStateCurry as setState } from "../utils.ts";
 import type { HostTransition } from "./types.d.ts";
-import { getMqttConfigFromSparkplug, onCurry } from "./utils.ts";
+import { getMqttConfigFromSparkplug, onCurry, unflatten } from "./utils.ts";
 import { onMessage } from "./utils.ts";
+import type {
+  UMetric,
+  UPayload,
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
 
 /**
  * Handles the 'connect' event for a SparkplugHost.
@@ -65,6 +71,7 @@ const setupHostEvents = (host: SparkplugHost) => {
       subscribeCurry("STATE/#", { qos: 1 }),
       subscribeCurry(`${host.version}/#`, { qos: 0 }),
     )(host.mqtt);
+    createHostMessageEvents(host);
   }
 };
 
@@ -218,6 +225,142 @@ export const createHost = (config: SparkplugCreateHostInput): SparkplugHost => {
     events: new EventEmitter(),
     scanRates: {},
     primaryHostId: config.primaryHostId,
+    groups: {},
   };
   return connectHost(host);
+};
+
+type dataEvent = "nbirth" | "dbirth" | "ndata" | "ddata";
+
+type DataEventConditionArgs = {
+  event: dataEvent;
+  host: SparkplugHost;
+  topic: SpbTopic;
+  message: UPayload;
+};
+
+const updateHostMetric = ({
+  host,
+  topic,
+  message,
+}: DataEventConditionArgs) => {
+  const { groupId, edgeNode, deviceId } = topic;
+  message.metrics?.forEach((metric: UMetric) => {
+    if (deviceId) {
+      if (!host.groups[groupId]?.nodes[edgeNode]) {
+        publishNodeRebirthRequest(host, topic);
+      } else {
+        if (metric.name) {
+          host.groups[groupId].nodes[edgeNode].devices[deviceId]
+            .metrics[metric.name] = metric;
+        }
+      }
+    } else {
+      if (!host.groups[groupId]?.nodes[edgeNode]) {
+        publishNodeRebirthRequest(host, topic);
+      } else {
+        if (metric.name) {
+          host.groups[groupId].nodes[edgeNode].metrics[metric.name] = metric;
+        }
+      }
+    }
+  });
+};
+
+const createHostNode = ({
+  host,
+  topic,
+  message,
+}: DataEventConditionArgs) => {
+  const { groupId, edgeNode } = topic;
+  host.groups[groupId] = {
+    nodes: {
+      [edgeNode]: {
+        metrics: unflatten(message.metrics),
+        devices: {},
+      },
+    },
+  };
+  updateHostMetric({ event: "nbirth", host, topic, message });
+};
+
+const createHostDevice = ({
+  host,
+  topic,
+  message,
+}: DataEventConditionArgs) => {
+  const { groupId, edgeNode, deviceId } = topic;
+  if (deviceId) {
+    if (!host.groups[groupId]?.nodes[edgeNode]) {
+      publishNodeRebirthRequest(host, topic);
+    } else {
+      host.groups[groupId].nodes[edgeNode].devices[deviceId] = {
+        metrics: unflatten(message.metrics),
+      };
+    }
+  }
+  updateHostMetric({ event: "dbirth", host, topic, message });
+};
+
+const publishNodeRebirthRequest = (
+  host: SparkplugHost,
+  topic: SpbTopic,
+) => {
+  if (host.mqtt) {
+    publishNodeCommand(
+      host,
+      "Rebirth",
+      true,
+      topic.groupId,
+      topic.edgeNode,
+      getMqttConfigFromSparkplug(host),
+      host.mqtt,
+    );
+  }
+};
+
+const dataEventConditions = [
+  {
+    condition: ({ event }: DataEventConditionArgs) => event === "nbirth",
+    action: createHostNode,
+  },
+  {
+    condition: ({ event }: DataEventConditionArgs) => event === "dbirth",
+    action: createHostDevice,
+  },
+  {
+    condition: ({ event }: DataEventConditionArgs) =>
+      event === "ndata" || event === "ddata",
+    action: updateHostMetric,
+  },
+];
+
+const processDataEvent =
+  (host: SparkplugHost, event: "nbirth" | "dbirth" | "ndata" | "ddata") =>
+  (topic: SpbTopic, message: UPayload) => {
+    try {
+      cond<
+        {
+          event: dataEvent;
+          host: SparkplugHost;
+          topic: SpbTopic;
+          message: UPayload;
+        },
+        void
+      >(
+        { event, host, topic, message },
+        dataEventConditions,
+      );
+    } catch (error) {
+      log.error(error.stack);
+    }
+  };
+
+export const createHostMessageEvents = (host: SparkplugHost) => {
+  ["nbirth", "dbirth", "ndata", "ddata"].forEach((event) => {
+    host.events.on(
+      event,
+      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata"),
+    );
+  });
 };

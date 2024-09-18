@@ -32,9 +32,6 @@ import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
 import type { OnConnectCallback } from "mqtt";
-import { createLogger } from "@joyautomation/coral";
-import { getLogLevel } from "../log.ts";
-
 import { logRbeEnabled } from "../log.ts";
 import { logRbe } from "../log.ts";
 
@@ -67,6 +64,7 @@ const onConnect = (node: SparkplugNode) => {
  */
 const onDisconnect = (node: SparkplugNode) => {
   return () => {
+    killScans(node);
     setNodeStateDisconnected(node);
     log.info(`${node.id} disconnected`);
     node.events.emit("disconnected");
@@ -142,7 +140,7 @@ const setupNodeEvents = (node: SparkplugNode) => {
 /**
  * Object containing node state transition functions.
  */
-const nodeTransitions = {
+export const nodeTransitions = {
   connect: (node: SparkplugNode) => {
     node.mqtt = createMqttClient(getMqttConfigFromSparkplug(node), node.bdseq);
     return setupNodeEvents(node);
@@ -161,6 +159,8 @@ const nodeTransitions = {
         getMqttConfigFromSparkplug(node),
         node.mqtt,
       );
+    } else {
+      log.warn("Node birth called without MQTT client");
     }
     return node;
   },
@@ -350,7 +350,7 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
     "Node needs to be connected to be disconnected",
     "disconnect",
   );
-
+on;
 /**
  * Sets the last published timestamp and value for a given metric in a Sparkplug Node or Device.
  *
@@ -411,7 +411,7 @@ const isNumberType = (metricType: SparkplugMetric["type"]): boolean =>
  *
  * The function handles both numeric and non-numeric metric types, applying appropriate comparison logic for each.
  */
-const metricNeedsToPublish = (metric: SparkplugMetric) => {
+export const metricNeedsToPublish = (metric: SparkplugMetric) => {
   if (
     !metric.lastPublished ||
     metric.lastPublished.value == null ||
@@ -429,9 +429,9 @@ const metricNeedsToPublish = (metric: SparkplugMetric) => {
   }
 
   const now = getUnixTime(new Date());
-  const timeSinceLastPublish = now - metric.lastPublished.timestamp;
+  const timeSinceLastPublish = now - metric.lastPublished!.timestamp;
   const valueDifference = Math.abs(
-    (metric.value as number) - Number(metric.lastPublished.value),
+    (metric.value as number) - Number(metric.lastPublished!.value),
   );
 
   if (metric.deadband?.value && valueDifference > metric.deadband.value) {

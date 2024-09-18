@@ -8,7 +8,10 @@ import type {
 import * as sparkplug from "npm:sparkplug-payload@1.0.3";
 import { pipe } from "npm:ramda@0.30.1";
 import { log } from "./log.ts";
-import type { UPayload } from "npm:sparkplug-payload@1.0.3/lib/sparkplugbpayload.js";
+import type {
+  UMetric,
+  UPayload,
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
 import {
   compressPayloadCurry as compressPayloadCurry,
   decompressPayload,
@@ -36,8 +39,8 @@ export const _internals = {
 const version: string = "spBv1.0";
 
 /** Sparkplug B payload encoder/decoder instance */
-const spb = sparkplug.get("spBv1.0")!;
-const { encodePayload, decodePayload } = spb;
+const spb = sparkplug.get(version)!;
+export const { encodePayload, decodePayload } = spb;
 
 /**
  * Converts a Uint8Array to a Buffer
@@ -183,22 +186,73 @@ export const publishNodeBirth = (
  * @param {string} command - The Sparkplug command type
  * @returns {Function} A function that publishes the payload for the specified command
  */
-const publishPayload = (command: "DBIRTH" | "DDEATH" | "DDATA" | "NDATA") =>
+const publishPayload =
+  (command: "DBIRTH" | "DDEATH" | "DDATA" | "NDATA" | "NCMD" | "DCMD") =>
+  (
+    sparkplug: SparkplugNode,
+    payload: UPayload,
+    mqttConfig: ISparkplugEdgeOptions,
+    client: mqtt.MqttClient,
+    deviceId?: string,
+  ) => {
+    const topic = createSpbTopic(command, mqttConfig, deviceId);
+    if (command === "NDATA") {
+      log.debug(`Publishing NDATA on node ${mqttConfig.edgeNode}`);
+    } else {
+      log.debug(
+        `Publishing Device ${deviceId} ${command} on node ${mqttConfig.edgeNode}`,
+      );
+    }
+    publish(
+      topic,
+      pipe(
+        addSeqNumberCurry(sparkplug) as Modify<UPayload>,
+        compressPayloadCurry(sparkplug.payloadOptions) as Modify<UPayload>,
+        encodePayload,
+        toBuffer,
+      )(payload) as Buffer,
+      client,
+    );
+  };
+
+export const publishDeviceDeath = publishPayload("DDEATH");
+export const publishDeviceBirth = publishPayload("DBIRTH");
+export const publishDeviceData = publishPayload("DDATA");
+export const publishNodeData = publishPayload("NDATA");
+
+const createCommandPayload = (
+  command: "NCMD" | "DCMD",
+  commandName: string,
+  value: UMetric["value"],
+): UPayload => ({
+  metrics: [
+    {
+      name: `${
+        command == "NCMD" ? "Node Control" : "Device Control"
+      }/${commandName}`,
+      value,
+      type: "Boolean",
+    },
+  ],
+});
+
+const publishCommand = (command: "NCMD" | "DCMD") =>
 (
-  sparkplug: SparkplugNode,
-  payload: UPayload,
-  mqttConfig: ISparkplugEdgeOptions,
+  sparkplug: SparkplugHost,
+  commandName: string,
+  value: UMetric["value"],
+  groupId: string,
+  edgeNode: string,
+  mqttConfig: ISparkplugHostOptions,
   client: mqtt.MqttClient,
   deviceId?: string,
 ) => {
-  const topic = createSpbTopic(command, mqttConfig, deviceId);
-  if (command === "NDATA") {
-    log.debug(`Publishing NDATA on node ${mqttConfig.edgeNode}`);
-  } else {
-    log.debug(
-      `Publishing Device ${deviceId} ${command} on node ${mqttConfig.edgeNode}`,
-    );
-  }
+  const topic = createSpbTopic(
+    command,
+    { ...mqttConfig, groupId, edgeNode },
+    deviceId,
+  );
+  const payload = createCommandPayload(command, commandName, value);
   publish(
     topic,
     pipe(
@@ -211,10 +265,8 @@ const publishPayload = (command: "DBIRTH" | "DDEATH" | "DDATA" | "NDATA") =>
   );
 };
 
-export const publishDeviceDeath = publishPayload("DDEATH");
-export const publishDeviceBirth = publishPayload("DBIRTH");
-export const publishDeviceData = publishPayload("DDATA");
-export const publishNodeData = publishPayload("NDATA");
+export const publishNodeCommand = publishCommand("NCMD");
+export const publishDeviceCommand = publishCommand("DCMD");
 
 /**
  * Publishes a message to an MQTT topic
@@ -379,7 +431,7 @@ export const destroyMqttClient = (client: mqtt.MqttClient | null) => {
 };
 
 /** Type representing a parsed Sparkplug B topic */
-type SpbTopic = {
+export type SpbTopic = {
   version: string;
   groupId: string;
   commandType: string;
