@@ -1,6 +1,6 @@
 {
   "name": "@joyautomation/neuron",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "Neuron is a tool for creating and managing neural networks.",
   "author": "Joy Automation",
   "license": "GPL-3.0-or-later",
