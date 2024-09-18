@@ -302,6 +302,15 @@ const createHostDevice = ({
   updateHostMetric({ event: "dbirth", host, topic, message });
 };
 
+/**
+ * Publishes a rebirth request to a specific node.
+ *
+ * This function sends a command to a node to initiate a rebirth process.
+ * It only executes if the host has an active MQTT connection.
+ *
+ * @param {SparkplugHost} host - The Sparkplug host object.
+ * @param {SpbTopic} topic - The Sparkplug topic object containing groupId and edgeNode.
+ */
 const publishNodeRebirthRequest = (
   host: SparkplugHost,
   topic: SpbTopic,
@@ -319,6 +328,10 @@ const publishNodeRebirthRequest = (
   }
 };
 
+/**
+ * Array of conditions and actions for handling different data events.
+ * Each condition is checked against the event type, and the corresponding action is executed if the condition is met.
+ */
 const dataEventConditions = [
   {
     condition: ({ event }: DataEventConditionArgs) => event === "nbirth",
@@ -335,6 +348,13 @@ const dataEventConditions = [
   },
 ];
 
+/**
+ * Creates a function to process a specific data event for a given host.
+ *
+ * @param {SparkplugHost} host - The Sparkplug host object.
+ * @param {("nbirth" | "dbirth" | "ndata" | "ddata")} event - The type of event to process.
+ * @returns {(topic: SpbTopic, message: UPayload) => void} A function that processes the event.
+ */
 const processDataEvent =
   (host: SparkplugHost, event: "nbirth" | "dbirth" | "ndata" | "ddata") =>
   (topic: SpbTopic, message: UPayload) => {
@@ -356,6 +376,11 @@ const processDataEvent =
     }
   };
 
+/**
+ * Sets up event listeners for various Sparkplug message types on the host.
+ *
+ * @param {SparkplugHost} host - The Sparkplug host object to set up events for.
+ */
 export const createHostMessageEvents = (host: SparkplugHost) => {
   ["nbirth", "dbirth", "ndata", "ddata"].forEach((event) => {
     host.events.on(
