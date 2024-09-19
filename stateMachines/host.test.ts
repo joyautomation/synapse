@@ -1,6 +1,6 @@
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
-import { createHost, disconnectHost } from "./host.ts";
+import { createHost, disconnectHost, flattenHostGroups } from "./host.ts";
 import type { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
 import type { MqttClient } from "mqtt";
 import type mqtt from "mqtt";
@@ -114,6 +114,80 @@ describe("The host state machine", () => {
       host.groups["testGroup"].nodes["testNode"].devices["testDevice"]
         .metrics["testMetric"],
     ).toBeDefined();
+  });
+
+  describe("flattenHostGroups", () => {
+    it("flattens the host groups", () => {
+      const host: SparkplugHost = {
+        id: "testHost",
+        groups: {
+          group1: {
+            id: "group1",
+            nodes: {
+              node1: {
+                id: "node1",
+                metrics: {
+                  metric1: {
+                    id: "metric1",
+                    name: "metric1",
+                    type: "metric1",
+                    value: "metric1",
+                  },
+                },
+                devices: {
+                  device1: {
+                    id: "device1",
+                    metrics: {
+                      metric2: {
+                        id: "metric2",
+                        name: "metric2",
+                        type: "metric2",
+                        value: "metric2",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as SparkplugHost;
+      const flattened = flattenHostGroups(host);
+      expect(flattened).toEqual([
+        {
+          id: "group1",
+          name: "group1",
+          nodes: [
+            {
+              id: "node1",
+              name: "node1",
+              metrics: [
+                {
+                  id: "metric1",
+                  name: "metric1",
+                  type: "metric1",
+                  value: "metric1",
+                },
+              ],
+              devices: [
+                {
+                  id: "device1",
+                  name: "device1",
+                  metrics: [
+                    {
+                      id: "metric2",
+                      name: "metric2",
+                      type: "metric2",
+                      value: "metric2",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+    });
   });
 
   it("disconnects properly when we tell it to", () => {

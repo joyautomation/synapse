@@ -3,6 +3,8 @@ import type mqtt from "mqtt";
 import type { UMetric } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import type { EventEmitter } from "node:events";
 import type { PayloadOptions } from "./compression/types.d.ts";
+import { flattenHostGroups } from "./stateMachines/host.ts";
+import { flatten } from "./stateMachines/utils.ts";
 
 export type SparkplugClientType = "host" | "edge";
 
@@ -96,13 +98,16 @@ export interface SparkplugHost extends SparkplugBase {
 }
 
 export interface SparkplugGroup {
+  id: string;
   nodes: {
     [nodeId: string]: {
+      id: string;
       metrics: {
         [metricId: string]: UMetric;
       };
       devices: {
         [deviceId: string]: {
+          id: string;
           metrics: {
             [metricId: string]: UMetric;
           };
@@ -110,6 +115,19 @@ export interface SparkplugGroup {
       };
     };
   };
+}
+
+export interface SparkplugDeviceFlat {
+  metrics: UMetric[];
+}
+
+export interface SparkplugNodeFlat {
+  metrics: UMetric[];
+  devices: SparkplugDeviceFlat[];
+}
+
+export interface SparkplugGroupFlat {
+  nodes: SparkplugNodeFlat[];
 }
 
 export interface SparkplugNode extends SparkplugCreateNodeInput {

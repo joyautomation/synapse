@@ -149,15 +149,18 @@ export const flatten = <T>(obj: { [key: string]: T }) => {
   }));
 };
 
-export const unflatten = <T extends { name?: string | null }>(
+export const unflatten = <
+  T extends { id?: string | null; name?: string | null },
+>(
   arr?: T[] | null,
 ): { [key: string]: T } => {
   if (!arr) {
     return {};
   }
   return arr.reduce((acc, item) => {
-    if (item.name) {
-      acc[item.name] = item;
+    const id = item.id ?? item.name;
+    if (id) {
+      acc[id] = item;
     }
     return acc;
   }, {} as { [key: string]: T });
