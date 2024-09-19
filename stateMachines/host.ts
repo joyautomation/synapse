@@ -24,6 +24,7 @@ import type {
   UMetric,
   UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
+import { SparkplugGroupFlat } from "../index.ts";
 
 /**
  * Handles the 'connect' event for a SparkplugHost.
@@ -272,7 +273,9 @@ const updateHostMetric = ({
   });
 };
 
-export const flattenHostGroups = (host: SparkplugHost) => {
+export const flattenHostGroups = (
+  host: SparkplugHost,
+): SparkplugGroupFlat[] => {
   return flatten(host.groups).map((group) => ({
     ...group,
     nodes: flatten(group.nodes).map((node) => ({
