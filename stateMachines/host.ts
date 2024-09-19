@@ -322,6 +322,14 @@ const createHostNode = ({
   updateHostMetric({ event: "nbirth", host, topic, message });
 };
 
+/**
+ * Creates a new device in the host's group structure.
+ *
+ * @param {Object} params - The parameters for creating a host device.
+ * @param {SparkplugHost} params.host - The Sparkplug host object.
+ * @param {SpbTopic} params.topic - The Sparkplug topic object containing groupId, edgeNode, and deviceId.
+ * @param {UPayload} params.message - The payload message containing device metrics.
+ */
 const createHostDevice = ({
   host,
   topic,
