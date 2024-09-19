@@ -34,6 +34,8 @@ export { createHost } from "./stateMachines/host.ts";
  */
 export { disconnectHost } from "./stateMachines/host.ts";
 
+export { flattenHostGroups } from "./stateMachines/host.ts";
+
 export { setLogLevel } from "./log.ts";
 
 export type * from "./types.d.ts";

@@ -13,7 +13,12 @@ import {
 import type mqtt from "mqtt";
 import { cond, setStateCurry as setState } from "../utils.ts";
 import type { HostTransition } from "./types.d.ts";
-import { getMqttConfigFromSparkplug, onCurry, unflatten } from "./utils.ts";
+import {
+  flatten,
+  getMqttConfigFromSparkplug,
+  onCurry,
+  unflatten,
+} from "./utils.ts";
 import { onMessage } from "./utils.ts";
 import type {
   UMetric,
@@ -267,6 +272,20 @@ const updateHostMetric = ({
   });
 };
 
+export const flattenHostGroups = (host: SparkplugHost) => {
+  return flatten(host.groups).map((group) => ({
+    ...group,
+    nodes: flatten(group.nodes).map((node) => ({
+      ...node,
+      devices: flatten(node.devices).map((device) => ({
+        ...device,
+        metrics: flatten(device.metrics),
+      })),
+      metrics: flatten(node.metrics),
+    })),
+  }));
+};
+
 const createHostNode = ({
   host,
   topic,
@@ -274,8 +293,10 @@ const createHostNode = ({
 }: DataEventConditionArgs) => {
   const { groupId, edgeNode } = topic;
   host.groups[groupId] = {
+    id: groupId,
     nodes: {
       [edgeNode]: {
+        id: edgeNode,
         metrics: unflatten(message.metrics),
         devices: {},
       },
@@ -295,6 +316,7 @@ const createHostDevice = ({
       publishNodeRebirthRequest(host, topic);
     } else {
       host.groups[groupId].nodes[edgeNode].devices[deviceId] = {
+        id: deviceId,
         metrics: unflatten(message.metrics),
       };
     }
