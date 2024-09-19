@@ -24,6 +24,7 @@ import type {
   UMetric,
   UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
+import { SparkplugGroupFlat } from "../index.ts";
 
 /**
  * Handles the 'connect' event for a SparkplugHost.
@@ -272,7 +273,15 @@ const updateHostMetric = ({
   });
 };
 
-export const flattenHostGroups = (host: SparkplugHost) => {
+/**
+ * Flattens the hierarchical structure of host groups into a flat array.
+ *
+ * @param {SparkplugHost} host - The Sparkplug host object containing the group hierarchy.
+ * @returns {SparkplugGroupFlat[]} An array of flattened group objects, each containing flattened nodes, devices, and metrics.
+ */
+export const flattenHostGroups = (
+  host: SparkplugHost,
+): SparkplugGroupFlat[] => {
   return flatten(host.groups).map((group) => ({
     ...group,
     nodes: flatten(group.nodes).map((node) => ({
@@ -286,6 +295,14 @@ export const flattenHostGroups = (host: SparkplugHost) => {
   }));
 };
 
+/**
+ * Creates a new node in the host's group structure.
+ *
+ * @param {Object} params - The parameters for creating a host node.
+ * @param {SparkplugHost} params.host - The Sparkplug host object.
+ * @param {SpbTopic} params.topic - The Sparkplug topic object containing groupId and edgeNode.
+ * @param {UPayload} params.message - The payload message containing node metrics.
+ */
 const createHostNode = ({
   host,
   topic,
@@ -305,6 +322,14 @@ const createHostNode = ({
   updateHostMetric({ event: "nbirth", host, topic, message });
 };
 
+/**
+ * Creates a new device in the host's group structure.
+ *
+ * @param {Object} params - The parameters for creating a host device.
+ * @param {SparkplugHost} params.host - The Sparkplug host object.
+ * @param {SpbTopic} params.topic - The Sparkplug topic object containing groupId, edgeNode, and deviceId.
+ * @param {UPayload} params.message - The payload message containing device metrics.
+ */
 const createHostDevice = ({
   host,
   topic,
