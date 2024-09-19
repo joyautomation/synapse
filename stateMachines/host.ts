@@ -273,6 +273,12 @@ const updateHostMetric = ({
   });
 };
 
+/**
+ * Flattens the hierarchical structure of host groups into a flat array.
+ *
+ * @param {SparkplugHost} host - The Sparkplug host object containing the group hierarchy.
+ * @returns {SparkplugGroupFlat[]} An array of flattened group objects, each containing flattened nodes, devices, and metrics.
+ */
 export const flattenHostGroups = (
   host: SparkplugHost,
 ): SparkplugGroupFlat[] => {
@@ -289,6 +295,14 @@ export const flattenHostGroups = (
   }));
 };
 
+/**
+ * Creates a new node in the host's group structure.
+ *
+ * @param {Object} params - The parameters for creating a host node.
+ * @param {SparkplugHost} params.host - The Sparkplug host object.
+ * @param {SpbTopic} params.topic - The Sparkplug topic object containing groupId and edgeNode.
+ * @param {UPayload} params.message - The payload message containing node metrics.
+ */
 const createHostNode = ({
   host,
   topic,
