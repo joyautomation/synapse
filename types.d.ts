@@ -210,6 +210,8 @@ export interface SparkplugGroup {
  * @interface SparkplugDeviceFlat
  */
 export interface SparkplugDeviceFlat {
+  /** The device identifier. */
+  id: string;
   /** The metrics associated with the Device. */
   metrics: UMetric[];
 }
@@ -219,6 +221,8 @@ export interface SparkplugDeviceFlat {
  * @interface SparkplugNodeFlat
  */
 export interface SparkplugNodeFlat {
+  /** The node identifier. */
+  id: string;
   /** The metrics associated with the Node. */
   metrics: UMetric[];
   /** The flattened devices associated with the Node. */
@@ -230,6 +234,8 @@ export interface SparkplugNodeFlat {
  * @interface SparkplugGroupFlat
  */
 export interface SparkplugGroupFlat {
+  /** The group identifier. */
+  id: string;
   /** The flattened nodes associated with the Group. */
   nodes: SparkplugNodeFlat[];
 }
