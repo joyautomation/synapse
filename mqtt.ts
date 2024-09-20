@@ -4,6 +4,7 @@ import type {
   ISparkplugHostOptions,
   SparkplugHost,
   SparkplugNode,
+  SparkplugTopic,
 } from "./types.d.ts";
 import * as sparkplug from "npm:sparkplug-payload@1.0.3";
 import { pipe } from "npm:ramda@0.30.1";
@@ -430,17 +431,8 @@ export const destroyMqttClient = (client: mqtt.MqttClient | null) => {
   if (client) client.end();
 };
 
-/** Type representing a parsed Sparkplug B topic */
-export type SpbTopic = {
-  version: string;
-  groupId: string;
-  commandType: string;
-  edgeNode: string;
-  deviceId?: string;
-};
-
 /** Input type for Sparkplug B message conditions and actions */
-type SpbMessageConditionInput = { topic: SpbTopic; message: Buffer };
+type SpbMessageConditionInput = { topic: SparkplugTopic; message: Buffer };
 
 /** Type for Sparkplug B message condition functions */
 type SpbMessageCondition = (input: SpbMessageConditionInput) => boolean;
@@ -473,10 +465,10 @@ const edgeCommands = commands.filter((command) =>
 
 /**
  * Parses a Sparkplug B topic into a human-readable message
- * @param {SpbTopic} topic - The parsed Sparkplug B topic
+ * @param {SparkplugTopic} topic - The parsed Sparkplug B topic
  * @returns {string} A human-readable message describing the topic
  */
-const parseTopicMessage = (topic: SpbTopic) => {
+const parseTopicMessage = (topic: SparkplugTopic) => {
   const parts = [
     topic.groupId && `group: ${topic.groupId}`,
     topic.edgeNode && `node: ${topic.edgeNode}`,
@@ -546,9 +538,9 @@ const createHandleHostCommands = (
 /**
  * Parses a Sparkplug B topic string into its components
  * @param {string} topic - The Sparkplug B topic string to parse
- * @returns {SpbTopic} An object containing the parsed topic components
+ * @returns {SparkplugTopic} An object containing the parsed topic components
  */
-export const parseSpbTopic = (topic: string): SpbTopic => {
+export const parseSpbTopic = (topic: string): SparkplugTopic => {
   const [version, groupId, commandType, edgeNode, deviceId] = topic.split("/");
   return { version, groupId, commandType, edgeNode, deviceId };
 };

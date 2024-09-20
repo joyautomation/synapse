@@ -1,5 +1,10 @@
 import EventEmitter from "node:events";
-import type { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
+import type {
+  SparkplugCreateHostInput,
+  SparkplugGroupFlat,
+  SparkplugHost,
+  SparkplugTopic,
+} from "../types.d.ts";
 import { curry, pipe } from "ramda";
 import { log } from "../log.ts";
 import {
@@ -7,7 +12,6 @@ import {
   destroyMqttClient,
   publishHostOnline,
   publishNodeCommand,
-  SpbTopic,
   subscribeCurry,
 } from "../mqtt.ts";
 import type mqtt from "mqtt";
@@ -24,7 +28,6 @@ import type {
   UMetric,
   UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
-import { SparkplugGroupFlat } from "../index.ts";
 
 /**
  * Handles the 'connect' event for a SparkplugHost.
@@ -241,7 +244,7 @@ type dataEvent = "nbirth" | "dbirth" | "ndata" | "ddata";
 type DataEventConditionArgs = {
   event: dataEvent;
   host: SparkplugHost;
-  topic: SpbTopic;
+  topic: SparkplugTopic;
   message: UPayload;
 };
 
@@ -300,7 +303,7 @@ export const flattenHostGroups = (
  *
  * @param {Object} params - The parameters for creating a host node.
  * @param {SparkplugHost} params.host - The Sparkplug host object.
- * @param {SpbTopic} params.topic - The Sparkplug topic object containing groupId and edgeNode.
+ * @param {SparkplugTopic} params.topic - The Sparkplug topic object containing groupId and edgeNode.
  * @param {UPayload} params.message - The payload message containing node metrics.
  */
 const createHostNode = ({
@@ -327,7 +330,7 @@ const createHostNode = ({
  *
  * @param {Object} params - The parameters for creating a host device.
  * @param {SparkplugHost} params.host - The Sparkplug host object.
- * @param {SpbTopic} params.topic - The Sparkplug topic object containing groupId, edgeNode, and deviceId.
+ * @param {SparkplugTopic} params.topic - The Sparkplug topic object containing groupId, edgeNode, and deviceId.
  * @param {UPayload} params.message - The payload message containing device metrics.
  */
 const createHostDevice = ({
@@ -356,11 +359,11 @@ const createHostDevice = ({
  * It only executes if the host has an active MQTT connection.
  *
  * @param {SparkplugHost} host - The Sparkplug host object.
- * @param {SpbTopic} topic - The Sparkplug topic object containing groupId and edgeNode.
+ * @param {SparkplugTopic} topic - The Sparkplug topic object containing groupId and edgeNode.
  */
 const publishNodeRebirthRequest = (
   host: SparkplugHost,
-  topic: SpbTopic,
+  topic: SparkplugTopic,
 ) => {
   if (host.mqtt) {
     publishNodeCommand(
@@ -400,17 +403,17 @@ const dataEventConditions = [
  *
  * @param {SparkplugHost} host - The Sparkplug host object.
  * @param {("nbirth" | "dbirth" | "ndata" | "ddata")} event - The type of event to process.
- * @returns {(topic: SpbTopic, message: UPayload) => void} A function that processes the event.
+ * @returns {(topic: SparkplugTopic, message: UPayload) => void} A function that processes the event.
  */
 const processDataEvent =
   (host: SparkplugHost, event: "nbirth" | "dbirth" | "ndata" | "ddata") =>
-  (topic: SpbTopic, message: UPayload) => {
+  (topic: SparkplugTopic, message: UPayload) => {
     try {
       cond<
         {
           event: dataEvent;
           host: SparkplugHost;
-          topic: SpbTopic;
+          topic: SparkplugTopic;
           message: UPayload;
         },
         void

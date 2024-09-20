@@ -314,3 +314,12 @@ export interface SparkplugMetric extends UMetric {
     value: UMetric["value"];
   };
 }
+
+/** Type representing a parsed Sparkplug B topic */
+export type SparkplugTopic = {
+  version: string;
+  groupId: string;
+  commandType: string;
+  edgeNode: string;
+  deviceId?: string;
+};

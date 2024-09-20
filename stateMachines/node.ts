@@ -473,7 +473,11 @@ export const publishMetrics = (
     publishNodeData(
       node,
       {
-        metrics: nodeMetrics,
+        timestamp: getUnixTime(new Date()),
+        metrics: nodeMetrics.map((metric) => ({
+          ...metric,
+          timestamp: getUnixTime(new Date()),
+        })),
       },
       getMqttConfigFromSparkplug(node),
       node.mqtt,
@@ -490,7 +494,13 @@ export const publishMetrics = (
     if (metrics.length > 0 && node.mqtt) {
       publishDeviceData(
         node,
-        { metrics },
+        {
+          timestamp: getUnixTime(new Date()),
+          metrics: metrics.map((metric) => ({
+            ...metric,
+            timestamp: getUnixTime(new Date()),
+          })),
+        },
         getMqttConfigFromSparkplug(node),
         node.mqtt,
         device.id,
