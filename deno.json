@@ -1,12 +1,12 @@
 {
-  "name": "@joyautomation/neuron",
+  "name": "@joyautomation/synapse",
   "version": "0.0.33",
-  "description": "Neuron is a tool for creating and managing neural networks.",
+  "description": "Synapse is a tool for creating and managing neural networks.",
   "author": "Joy Automation",
   "license": "GPL-3.0-or-later",
-  "repository": "github:joyautomation/neuron",
-  "homepage": "https://github.com/joyautomation/neuron#readme",
-  "bugs": "https://github.com/joyautomation/neuron/issues",
+  "repository": "github:joyautomation/synapse",
+  "homepage": "https://github.com/joyautomation/synapse#readme",
+  "bugs": "https://github.com/joyautomation/synapse/issues",
   "declaration": true,
   "exports": "./index.ts",
   "tasks": {

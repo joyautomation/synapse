@@ -6,7 +6,7 @@ import { setLogLevel as setCoralLogLevel } from "@joyautomation/coral";
  * @returns {LogLevel} The determined log level.
  */
 export function getLogLevel(): LogLevel {
-  const envLogLevel = Deno.env.get("NEURON_LOG_LEVEL");
+  const envLogLevel = Deno.env.get("SYNAPSE_LOG_LEVEL");
   if (envLogLevel && envLogLevel in LogLevel) {
     return LogLevel[envLogLevel as keyof typeof LogLevel];
   }
@@ -14,12 +14,12 @@ export function getLogLevel(): LogLevel {
 }
 
 /**
- * Creates and exports a logger instance for the "neuron" module.
+ * Creates and exports a logger instance for the "synapse" module.
  * The log level is determined by the getLogLevel function.
  */
-export const log = createLogger("neuron", getLogLevel());
+export const log = createLogger("synapse", getLogLevel());
 export const logRbeEnabled = false;
-export const logRbe = createLogger("neuron-rbe", getLogLevel());
+export const logRbe = createLogger("synapse-rbe", getLogLevel());
 
 /**
  * Sets the log level for the logger.

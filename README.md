@@ -1,6 +1,6 @@
-# Neuron
+# Synapse
 
-Neuron is a an MQTT Sparkplug B Client for use with the project Kraken stack.
+Synpase is a an MQTT Sparkplug B Client for use with the project Kraken stack.
 
 ## Usage
 
@@ -101,4 +101,4 @@ setInterval(() => {
 
 ## Environment Variables
 
-NEURON_LOG_LEVEL: set to `debug`, `info`, `warn`, or `error` to control which logs are console logged.
+SYNAPSE_LOG_LEVEL: set to `debug`, `info`, `warn`, or `error` to control which logs are console logged.
