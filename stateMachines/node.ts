@@ -64,7 +64,7 @@ const onConnect = (node: SparkplugNode) => {
  */
 const onDisconnect = (
   node: SparkplugNode,
-): mqtt.OnErrorCallback | OnDisconnectCallback => {
+): mqtt.OnErrorCallback | OnDisconnectCallback | mqtt.OnCloseCallback => {
   return (error?: Error) => {
     killScans(node);
     setNodeStateDisconnected(node);

@@ -50,10 +50,16 @@ export const onConnect = (host: SparkplugHost) => {
  * @param {SparkplugHost} host - The SparkplugHost instance.
  * @returns {() => void} A function to be called when the host disconnects.
  */
-export const onDisconnect = (host: SparkplugHost) => {
-  return () => {
+export const onDisconnect = (
+  host: SparkplugHost,
+): mqtt.OnDisconnectCallback | mqtt.OnCloseCallback | mqtt.OnErrorCallback => {
+  return (error?: Error) => {
     setHostStateDisconnected(host);
-    log.info(`${host.id} disconnected`);
+    if (error) {
+      log.error(error);
+    } else {
+      log.info(`${host.id} disconnected`);
+    }
     host.events.emit("disconnected");
   };
 };
@@ -75,6 +81,14 @@ const setupHostEvents = (host: SparkplugHost) => {
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
+        onDisconnect(host),
+      ),
+      onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
+        "close",
+        onDisconnect(host),
+      ),
+      onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
+        "error",
         onDisconnect(host),
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
