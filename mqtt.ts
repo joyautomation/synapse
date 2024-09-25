@@ -7,7 +7,7 @@ import type {
   SparkplugTopic,
 } from "./types.d.ts";
 import * as sparkplug from "npm:sparkplug-payload@1.0.3";
-import { pipe } from "npm:ramda@0.30.1";
+import { pipe } from "ramda";
 import { log } from "./log.ts";
 import type {
   UMetric,

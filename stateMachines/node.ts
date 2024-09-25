@@ -31,7 +31,7 @@ import { flatten, getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
 import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
-import type { OnConnectCallback } from "mqtt";
+import type { OnConnectCallback, OnDisconnectCallback } from "mqtt";
 import { logRbeEnabled } from "../log.ts";
 import { logRbe } from "../log.ts";
 
@@ -62,11 +62,17 @@ const onConnect = (node: SparkplugNode) => {
  * @param {SparkplugNode} node - The Sparkplug node to handle the disconnection for.
  * @returns {() => void} A function to be called when the disconnection occurs.
  */
-const onDisconnect = (node: SparkplugNode) => {
-  return () => {
+const onDisconnect = (
+  node: SparkplugNode,
+): mqtt.OnErrorCallback | OnDisconnectCallback => {
+  return (error?: Error) => {
     killScans(node);
     setNodeStateDisconnected(node);
-    log.info(`${node.id} disconnected`);
+    if (error) {
+      log.error(error);
+    } else {
+      log.info(`${node.id} disconnected`);
+    }
     node.events.emit("disconnected");
   };
 };
@@ -119,6 +125,14 @@ const setupNodeEvents = (node: SparkplugNode) => {
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
+        onDisconnect(node),
+      ),
+      onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
+        "close",
+        onDisconnect(node),
+      ),
+      onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
+        "error",
         onDisconnect(node),
       ),
       subscribeCurry(createSpbTopic("DCMD", getMqttConfigFromSparkplug(node)), {

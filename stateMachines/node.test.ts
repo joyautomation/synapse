@@ -16,8 +16,6 @@ import type mqtt from "mqtt";
 import { assertSpyCalls, Spy, spy, stub } from "@std/testing/mock";
 import { EventEmitter } from "node:events";
 import { _internals } from "../mqtt.ts";
-import { Buffer } from "node:buffer";
-import { encodePayload } from "../mqtt.ts";
 import { getUnixTime } from "date-fns";
 
 const connectPacket: mqtt.IConnackPacket = {
