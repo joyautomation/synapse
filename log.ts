@@ -10,7 +10,7 @@ export function getLogLevel(): LogLevel {
   if (envLogLevel && envLogLevel in LogLevel) {
     return LogLevel[envLogLevel as keyof typeof LogLevel];
   }
-  return LogLevel.info;
+  return LogLevel.debug;
 }
 
 /**
@@ -18,7 +18,7 @@ export function getLogLevel(): LogLevel {
  * The log level is determined by the getLogLevel function.
  */
 export const log = createLogger("synapse", getLogLevel());
-export const logRbeEnabled = false;
+export const logRbeEnabled = true;
 export const logRbe = createLogger("synapse-rbe", getLogLevel());
 
 /**

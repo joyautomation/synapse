@@ -27,7 +27,14 @@ import { getUnixTime } from "date-fns";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
-import { flatten, getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
+import {
+  evaluateMetrics,
+  evaluateMetricValue,
+  flatten,
+  getMqttConfigFromSparkplug,
+  on,
+  onCurry,
+} from "./utils.ts";
 import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
@@ -64,16 +71,28 @@ const onConnect = (node: SparkplugNode) => {
  */
 const onDisconnect = (
   node: SparkplugNode,
-): mqtt.OnErrorCallback | OnDisconnectCallback | mqtt.OnCloseCallback => {
-  return (error?: Error) => {
+): OnDisconnectCallback => {
+  return () => {
     killScans(node);
     setNodeStateDisconnected(node);
-    if (error) {
-      log.error(error);
-    } else {
-      log.info(`${node.id} disconnected`);
-    }
+    log.info(`${node.id} disconnected`);
     node.events.emit("disconnected");
+  };
+};
+
+const onClose = (node: SparkplugNode) => {
+  return () => {
+    setNodeStateDisconnected(node);
+    log.info(`${node.id} closed`);
+    node.events.emit("closed");
+  };
+};
+
+const onError = (node: SparkplugNode) => {
+  return (error: Error) => {
+    setNodeStateDisconnected(node);
+    log.error(error);
+    node.events.emit("error", error);
   };
 };
 
@@ -129,11 +148,11 @@ const setupNodeEvents = (node: SparkplugNode) => {
       ),
       onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
         "close",
-        onDisconnect(node),
+        onClose(node),
       ),
       onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
         "error",
-        onDisconnect(node),
+        onError(node),
       ),
       subscribeCurry(createSpbTopic("DCMD", getMqttConfigFromSparkplug(node)), {
         qos: 0,
@@ -163,13 +182,13 @@ export const nodeTransitions = {
     destroyMqttClient(node.mqtt);
     return setNodeStateDisconnected(node);
   },
-  birth: (node: SparkplugNode) => {
+  birth: async (node: SparkplugNode) => {
     if (node.mqtt) {
       publishNodeBirth(
         node.bdseq,
         node.seq,
         undefined,
-        getNodeBirthPayload(flatten(node.metrics)),
+        getNodeBirthPayload(await evaluateMetrics(node.metrics)),
         getMqttConfigFromSparkplug(node),
         node.mqtt,
       );
@@ -371,14 +390,14 @@ on;
  * @param {SparkplugNode | SparkplugDevice} parent - The parent node or device containing the metric.
  * @param {SparkplugMetric} metric - The metric to update.
  */
-export const setLastPublished = (
+export const setLastPublished = async (
   parent: SparkplugNode | SparkplugDevice,
   metric: SparkplugMetric,
 ) => {
   if (metric.name && metric.value) {
     parent.metrics[metric.name].lastPublished = {
       timestamp: getUnixTime(new Date()),
-      value: metric.value,
+      value: await evaluateMetricValue(metric),
     };
   }
 };
@@ -475,12 +494,13 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
  * @param {number} [scanRate] - The scan rate to filter metrics by.
  * @param {(metric: SparkplugMetric) => boolean} [metricSelector] - A function to select which metrics to publish.
  */
-export const publishMetrics = (
+export const publishMetrics = async (
   node: SparkplugNode,
   scanRate?: number,
   metricSelector: (metric: SparkplugMetric) => boolean = () => true,
 ) => {
-  const nodeMetrics = flatten(node.metrics).filter(
+  const evaluatedMetrics = await evaluateMetrics(node.metrics);
+  const nodeMetrics = evaluatedMetrics.filter(
     (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric),
   );
   if (nodeMetrics.length > 0 && node.mqtt) {
@@ -498,8 +518,9 @@ export const publishMetrics = (
     );
   }
   nodeMetrics.forEach((metric) => setLastPublished(node, metric));
-  flatten(node.devices).forEach((device) => {
-    const metrics = flatten(device.metrics).filter(
+  for (const device of flatten(node.devices)) {
+    const evaluatedMetrics = await evaluateMetrics(device.metrics);
+    const metrics = evaluatedMetrics.filter(
       (metric) =>
         metricSelector(metric) &&
         (scanRate == null || metric.scanRate === scanRate) &&
@@ -521,7 +542,7 @@ export const publishMetrics = (
       );
       metrics.forEach((metric) => setLastPublished(device, metric));
     }
-  });
+  }
 };
 
 /**

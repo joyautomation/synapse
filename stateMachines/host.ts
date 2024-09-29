@@ -1,8 +1,12 @@
 import EventEmitter from "node:events";
 import type {
   SparkplugCreateHostInput,
+  SparkplugDevice,
+  SparkplugDeviceFlat,
   SparkplugGroupFlat,
   SparkplugHost,
+  SparkplugNode,
+  SparkplugNodeFlat,
   SparkplugTopic,
 } from "../types.d.ts";
 import { curry, pipe } from "ramda";
@@ -52,15 +56,27 @@ export const onConnect = (host: SparkplugHost) => {
  */
 export const onDisconnect = (
   host: SparkplugHost,
-): mqtt.OnDisconnectCallback | mqtt.OnCloseCallback | mqtt.OnErrorCallback => {
-  return (error?: Error) => {
+) => {
+  return () => {
     setHostStateDisconnected(host);
-    if (error) {
-      log.error(error);
-    } else {
-      log.info(`${host.id} disconnected`);
-    }
+    log.info(`${host.id} disconnected`);
     host.events.emit("disconnected");
+  };
+};
+
+export const onClose = (host: SparkplugHost) => {
+  return () => {
+    setHostStateDisconnected(host);
+    log.info(`${host.id} closed`);
+    host.events.emit("closed");
+  };
+};
+
+export const onError = (host: SparkplugHost) => {
+  return (error: Error) => {
+    setHostStateDisconnected(host);
+    log.error(error);
+    host.events.emit("error", error);
   };
 };
 
@@ -85,11 +101,11 @@ const setupHostEvents = (host: SparkplugHost) => {
       ),
       onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
         "close",
-        onDisconnect(host),
+        onClose(host),
       ),
       onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
         "error",
-        onDisconnect(host),
+        onError(host),
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
       subscribeCurry(`${host.version}/#`, { qos: 0 }),
@@ -310,6 +326,23 @@ export const flattenHostGroups = (
       metrics: flatten(node.metrics),
     })),
   }));
+};
+
+/**
+ * Flattens a SparkplugNode object, converting nested structures into flat arrays.
+ *
+ * @param {SparkplugNode} node - The SparkplugNode object to flatten.
+ * @returns {Object} A new object with flattened devices and metrics arrays.
+ */
+export const flattenNode = (node: SparkplugNode): SparkplugNodeFlat => {
+  return {
+    ...node,
+    devices: flatten(node.devices).map((device) => ({
+      ...device,
+      metrics: flatten(device.metrics),
+    })) as SparkplugDeviceFlat[],
+    metrics: flatten(node.metrics),
+  };
 };
 
 /**

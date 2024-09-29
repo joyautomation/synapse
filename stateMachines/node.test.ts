@@ -131,9 +131,9 @@ describe("Node", () => {
     });
   });
   describe("birth transition", () => {
-    it("publishes a birth message if the mqtt client exists.", () => {
+    it("publishes a birth message if the mqtt client exists.", async () => {
       const calls = (node.mqtt?.publish as Spy).calls.length;
-      nodeTransitions.birth(node);
+      await nodeTransitions.birth(node);
       expect(node.mqtt?.publish).toBeDefined();
       if (node.mqtt?.publish) {
         assertSpyCalls(node.mqtt.publish as Spy, calls + 1);

@@ -224,7 +224,7 @@ export interface SparkplugNodeFlat {
   /** The node identifier. */
   id: string;
   /** The metrics associated with the Node. */
-  metrics: UMetric[];
+  metrics: SparkplugMetric[];
   /** The flattened devices associated with the Node. */
   devices: SparkplugDeviceFlat[];
 }
@@ -300,7 +300,7 @@ export interface SparkplugDevice extends SparkplugCreateDeviceInput {
  * @interface SparkplugMetric
  * @extends {UMetric}
  */
-export interface SparkplugMetric extends UMetric {
+export interface SparkplugMetric extends Omit<UMetric, "value"> {
   /** The scan rate for the metric. */
   scanRate?: number;
   /** The deadband configuration for the metric. */
@@ -308,6 +308,10 @@ export interface SparkplugMetric extends UMetric {
     maxTime?: number;
     value: number;
   };
+  value:
+    | UMetric["value"]
+    | (() => UMetric["value"])
+    | (() => Promise<UMetric["value"]>);
   /** The last published information for the metric. */
   lastPublished?: {
     timestamp: number;

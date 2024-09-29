@@ -6,9 +6,11 @@ import type {
   ISparkplugEdgeOptions,
   ISparkplugHostOptions,
   SparkplugHost,
+  SparkplugMetric,
   SparkplugNode,
 } from "../types.d.ts";
 import { handleMessage } from "../mqtt.ts";
+import { getUnixTime } from "date-fns";
 
 /**
  * Emits an event with optional data using the provided EventEmitter.
@@ -164,4 +166,25 @@ export const unflatten = <
     }
     return acc;
   }, {} as { [key: string]: T });
+};
+
+export const evaluateMetricValue = (metric: SparkplugMetric) => {
+  if (typeof metric.value === "function") {
+    return metric.value();
+  }
+  return metric.value;
+};
+
+export const evaluateMetric = async (metric: SparkplugMetric) => {
+  return {
+    ...metric,
+    value: await evaluateMetricValue(metric),
+    timestamp: getUnixTime(new Date()),
+  };
+};
+
+export const evaluateMetrics = async (
+  metrics: { [key: string]: SparkplugMetric },
+) => {
+  return await Promise.all(Object.values(metrics).map(evaluateMetric));
 };
