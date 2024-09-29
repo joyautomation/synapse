@@ -32,10 +32,28 @@ export { createHost } from "./stateMachines/host.ts";
  * @name disconnectHost
  * @memberof module:stateMachines
  */
+/**
+ * Disconnects a host.
+ * @function
+ * @name disconnectHost
+ * @memberof module:stateMachines
+ */
 export { disconnectHost } from "./stateMachines/host.ts";
 
+/**
+ * Flattens the groups of a host into a single array.
+ * @function
+ * @name flattenHostGroups
+ * @memberof module:stateMachines
+ */
 export { flattenHostGroups } from "./stateMachines/host.ts";
 
+/**
+ * Sets the log level for the application.
+ * @function
+ * @name setLogLevel
+ * @memberof module:log
+ */
 export { setLogLevel } from "./log.ts";
 
 export type * from "./types.d.ts";

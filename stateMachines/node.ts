@@ -80,6 +80,11 @@ const onDisconnect = (
   };
 };
 
+/**
+ * Handles the close event for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to handle the close event for.
+ * @returns {() => void} A function to be called when the connection is closed.
+ */
 const onClose = (node: SparkplugNode) => {
   return () => {
     setNodeStateDisconnected(node);
@@ -88,6 +93,11 @@ const onClose = (node: SparkplugNode) => {
   };
 };
 
+/**
+ * Handles the error event for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to handle the error event for.
+ * @returns {(error: Error) => void} A function to be called when an error occurs.
+ */
 const onError = (node: SparkplugNode) => {
   return (error: Error) => {
     setNodeStateDisconnected(node);
