@@ -10,7 +10,8 @@ import type {
   SparkplugTopic,
 } from "../types.d.ts";
 import { curry, pipe } from "ramda";
-import { log } from "../log.ts";
+import { logs } from "../log.ts";
+const { main: log } = logs;
 import {
   createHostMqttClient,
   destroyMqttClient,

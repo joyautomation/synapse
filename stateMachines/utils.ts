@@ -1,5 +1,6 @@
 import type EventEmitter from "node:events";
-import { log } from "../log.ts";
+import { logs } from "../log.ts";
+const { main: log } = logs;
 import type { Buffer } from "node:buffer";
 
 import type {

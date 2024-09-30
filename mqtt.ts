@@ -8,7 +8,8 @@ import type {
 } from "./types.d.ts";
 import * as sparkplug from "npm:sparkplug-payload@1.0.3";
 import { pipe } from "ramda";
-import { log } from "./log.ts";
+import { logs } from "./log.ts";
+const { main: log } = logs;
 import type {
   UMetric,
   UPayload,
