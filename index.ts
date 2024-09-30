@@ -54,6 +54,6 @@ export { flattenHostGroups } from "./stateMachines/host.ts";
  * @name setLogLevel
  * @memberof module:log
  */
-export { disableLog, enableLog, setLogLevel } from "./log.ts";
+export { disableLog, enableLog, logs, setLogLevel } from "./log.ts";
 
 export type * from "./types.d.ts";
