@@ -49,6 +49,32 @@ export { disconnectHost } from "./stateMachines/host.ts";
 export { flattenHostGroups } from "./stateMachines/host.ts";
 
 /**
+ * Exports logging-related functions.
+ * @module log
+ */
+
+/**
+ * Disables logging.
+ * @function
+ * @name disableLog
+ * @memberof module:log
+ */
+
+/**
+ * Enables logging.
+ * @function
+ * @name enableLog
+ * @memberof module:log
+ */
+
+/**
+ * Logging utility object.
+ * @const
+ * @name logs
+ * @memberof module:log
+ */
+
+/**
  * Sets the log level for the application.
  * @function
  * @name setLogLevel
