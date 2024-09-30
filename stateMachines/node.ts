@@ -27,11 +27,18 @@ import { getUnixTime } from "date-fns";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
-import { flatten, getMqttConfigFromSparkplug, on, onCurry } from "./utils.ts";
+import {
+  evaluateMetrics,
+  evaluateMetricValue,
+  flatten,
+  getMqttConfigFromSparkplug,
+  on,
+  onCurry,
+} from "./utils.ts";
 import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
-import type { OnConnectCallback } from "mqtt";
+import type { OnConnectCallback, OnDisconnectCallback } from "mqtt";
 import { logRbeEnabled } from "../log.ts";
 import { logRbe } from "../log.ts";
 
@@ -62,12 +69,40 @@ const onConnect = (node: SparkplugNode) => {
  * @param {SparkplugNode} node - The Sparkplug node to handle the disconnection for.
  * @returns {() => void} A function to be called when the disconnection occurs.
  */
-const onDisconnect = (node: SparkplugNode) => {
+const onDisconnect = (
+  node: SparkplugNode,
+): OnDisconnectCallback => {
   return () => {
     killScans(node);
     setNodeStateDisconnected(node);
     log.info(`${node.id} disconnected`);
     node.events.emit("disconnected");
+  };
+};
+
+/**
+ * Handles the close event for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to handle the close event for.
+ * @returns {() => void} A function to be called when the connection is closed.
+ */
+const onClose = (node: SparkplugNode) => {
+  return () => {
+    setNodeStateDisconnected(node);
+    log.info(`${node.id} closed`);
+    node.events.emit("closed");
+  };
+};
+
+/**
+ * Handles the error event for a Sparkplug node.
+ * @param {SparkplugNode} node - The Sparkplug node to handle the error event for.
+ * @returns {(error: Error) => void} A function to be called when an error occurs.
+ */
+const onError = (node: SparkplugNode) => {
+  return (error: Error) => {
+    setNodeStateDisconnected(node);
+    log.error(error);
+    node.events.emit("error", error);
   };
 };
 
@@ -121,6 +156,14 @@ const setupNodeEvents = (node: SparkplugNode) => {
         "disconnect",
         onDisconnect(node),
       ),
+      onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
+        "close",
+        onClose(node),
+      ),
+      onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
+        "error",
+        onError(node),
+      ),
       subscribeCurry(createSpbTopic("DCMD", getMqttConfigFromSparkplug(node)), {
         qos: 0,
       }),
@@ -149,13 +192,13 @@ export const nodeTransitions = {
     destroyMqttClient(node.mqtt);
     return setNodeStateDisconnected(node);
   },
-  birth: (node: SparkplugNode) => {
+  birth: async (node: SparkplugNode) => {
     if (node.mqtt) {
       publishNodeBirth(
         node.bdseq,
         node.seq,
         undefined,
-        getNodeBirthPayload(flatten(node.metrics)),
+        getNodeBirthPayload(await evaluateMetrics(node.metrics)),
         getMqttConfigFromSparkplug(node),
         node.mqtt,
       );
@@ -357,14 +400,14 @@ on;
  * @param {SparkplugNode | SparkplugDevice} parent - The parent node or device containing the metric.
  * @param {SparkplugMetric} metric - The metric to update.
  */
-export const setLastPublished = (
+export const setLastPublished = async (
   parent: SparkplugNode | SparkplugDevice,
   metric: SparkplugMetric,
 ) => {
   if (metric.name && metric.value) {
     parent.metrics[metric.name].lastPublished = {
       timestamp: getUnixTime(new Date()),
-      value: metric.value,
+      value: await evaluateMetricValue(metric),
     };
   }
 };
@@ -461,12 +504,13 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
  * @param {number} [scanRate] - The scan rate to filter metrics by.
  * @param {(metric: SparkplugMetric) => boolean} [metricSelector] - A function to select which metrics to publish.
  */
-export const publishMetrics = (
+export const publishMetrics = async (
   node: SparkplugNode,
   scanRate?: number,
   metricSelector: (metric: SparkplugMetric) => boolean = () => true,
 ) => {
-  const nodeMetrics = flatten(node.metrics).filter(
+  const evaluatedMetrics = await evaluateMetrics(node.metrics);
+  const nodeMetrics = evaluatedMetrics.filter(
     (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric),
   );
   if (nodeMetrics.length > 0 && node.mqtt) {
@@ -484,8 +528,9 @@ export const publishMetrics = (
     );
   }
   nodeMetrics.forEach((metric) => setLastPublished(node, metric));
-  flatten(node.devices).forEach((device) => {
-    const metrics = flatten(device.metrics).filter(
+  for (const device of flatten(node.devices)) {
+    const evaluatedMetrics = await evaluateMetrics(device.metrics);
+    const metrics = evaluatedMetrics.filter(
       (metric) =>
         metricSelector(metric) &&
         (scanRate == null || metric.scanRate === scanRate) &&
@@ -507,7 +552,7 @@ export const publishMetrics = (
       );
       metrics.forEach((metric) => setLastPublished(device, metric));
     }
-  });
+  }
 };
 
 /**

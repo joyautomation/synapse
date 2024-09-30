@@ -15,7 +15,7 @@ import type {
   SparkplugNode,
 } from "../types.d.ts";
 import { setStateCurry as setState } from "../utils.ts";
-import { getMqttConfigFromSparkplug } from "./utils.ts";
+import { evaluateMetrics, getMqttConfigFromSparkplug } from "./utils.ts";
 
 /**
  * Creates a new SparkplugDevice object.
@@ -41,7 +41,7 @@ type DeviceTransitions = {
   [K in DeviceTransition]: (
     node: SparkplugNode,
     device: SparkplugDevice,
-  ) => SparkplugDevice;
+  ) => Promise<SparkplugDevice>;
 };
 
 /**
@@ -51,14 +51,14 @@ type DeviceTransitions = {
  */
 const deriveTransition =
   (transition: "birth" | "death") =>
-  (node: SparkplugNode, device: SparkplugDevice) => {
+  async (node: SparkplugNode, device: SparkplugDevice) => {
     const executeTransition = transition === "birth"
       ? publishDeviceBirth
       : publishDeviceDeath;
     if (node.mqtt) {
       executeTransition(
         node,
-        { metrics: Object.values(device.metrics) },
+        { metrics: await evaluateMetrics(device.metrics) },
         getMqttConfigFromSparkplug(node),
         node.mqtt,
         device.id,
@@ -104,7 +104,7 @@ export const getDeviceStateString = (device: SparkplugDevice) => {
  * @returns {SparkplugDevice} The updated device object.
  */
 const changeDeviceState = curry(
-  (
+  async (
     inRequiredState: (device: SparkplugDevice) => boolean,
     notInRequiredStateLogText: string,
     transition: DeviceTransition,
@@ -123,7 +123,7 @@ const changeDeviceState = curry(
       log.info(
         `transitioning from ${getDeviceStateString(device)} to ${transition}`,
       );
-      deviceTransitions[transition](node, device);
+      await deviceTransitions[transition](node, device);
     }
     return device;
   },
