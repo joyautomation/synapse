@@ -22,23 +22,23 @@ export function getLogLevel(): LogLevel {
  * Creates and exports a logger instance for the "synapse" module.
  * The log level is determined by the getLogLevel function.
  */
-const createSynapseLog = (name: string) =>
+const createSynapseLog = (name: string): Log =>
   createLogger(`synapse${name ? "-" : ""}${name}`, getLogLevel());
 
-const rbe = createSynapseLog("rbe");
+const rbe: Log = createSynapseLog("rbe");
 setCoralLogEnable(rbe, false);
 
-export const logs = {
+export const logs: Record<string, Log> = {
   main: createSynapseLog(""),
   rbe,
 };
 
-export const disableLog = (name: keyof typeof logs) => {
-  logs[name].enabled = false;
+export const disableLog = (name: keyof typeof logs): Log => {
+  return setCoralLogEnable(logs[name], false);
 };
 
-export const enableLog = (name: keyof typeof logs) => {
-  logs[name].enabled = true;
+export const enableLog = (name: keyof typeof logs): Log => {
+  return setCoralLogEnable(logs[name], true);
 };
 
 /**
