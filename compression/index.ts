@@ -8,7 +8,8 @@ import {
   type UMetric,
   type UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
-import { log } from "../log.ts";
+import { logs } from "../log.ts";
+const { main: log } = logs;
 import { cond } from "../utils.ts";
 import type { Buffer } from "node:buffer";
 

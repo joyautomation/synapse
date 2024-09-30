@@ -1,5 +1,10 @@
-import { createLogger, Log, LogLevel } from "@joyautomation/coral";
-import { setLogLevel as setCoralLogLevel } from "@joyautomation/coral";
+import {
+  createLogger,
+  type Log,
+  LogLevel,
+  setEnabled as setCoralLogEnable,
+  setLogLevel as setCoralLogLevel,
+} from "@joyautomation/coral";
 
 /**
  * Determines the log level based on the environment variable.
@@ -17,14 +22,29 @@ export function getLogLevel(): LogLevel {
  * Creates and exports a logger instance for the "synapse" module.
  * The log level is determined by the getLogLevel function.
  */
-export const log = createLogger("synapse", getLogLevel());
-export const logRbeEnabled = true;
-export const logRbe = createLogger("synapse-rbe", getLogLevel());
+const createSynapseLog = (name: string) =>
+  createLogger(`synapse${name ? "-" : ""}${name}`, getLogLevel());
+
+const rbe = createSynapseLog("rbe");
+setCoralLogEnable(rbe, false);
+
+export const logs = {
+  main: createSynapseLog(""),
+  rbe,
+};
+
+export const disableLog = (name: keyof typeof logs) => {
+  logs[name].enabled = false;
+};
+
+export const enableLog = (name: keyof typeof logs) => {
+  logs[name].enabled = true;
+};
 
 /**
  * Sets the log level for the logger.
  * @param {LogLevel} level - The log level to set.
  */
 export const setLogLevel = (level: LogLevel): Log[] => {
-  return [setCoralLogLevel(log, level), setCoralLogLevel(logRbe, level)];
+  return Object.values(logs).map((log) => setCoralLogLevel(log, level));
 };

@@ -22,7 +22,8 @@ import type {
   UMetric,
   UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
-import { log } from "../log.ts";
+import { logs } from "../log.ts";
+const { main: log } = logs;
 import { getUnixTime } from "date-fns";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
@@ -39,8 +40,6 @@ import type { NodeEvent, NodeTransition } from "./types.d.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
 import type { OnConnectCallback, OnDisconnectCallback } from "mqtt";
-import { logRbeEnabled } from "../log.ts";
-import { logRbe } from "../log.ts";
 
 /**
  * Handles the connection event for a Sparkplug node.
@@ -462,11 +461,9 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
     !metric.deadband
   ) {
     if (metric.value !== metric.lastPublished?.value) {
-      if (logRbeEnabled) {
-        logRbe.debug(
-          `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
-        );
-      }
+      logs.rbe.debug(
+        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
+      );
       return true;
     }
   }
@@ -478,21 +475,17 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
   );
 
   if (metric.deadband?.value && valueDifference > metric.deadband.value) {
-    if (logRbeEnabled) {
-      logRbe.debug(
-        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
-      );
-    }
+    logs.rbe.debug(
+      `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
+    );
     return true;
   } else if (
     metric.deadband?.maxTime &&
     timeSinceLastPublish > metric.deadband.maxTime
   ) {
-    if (logRbeEnabled) {
-      logRbe.debug(
-        `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`,
-      );
-    }
+    logs.rbe.debug(
+      `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`,
+    );
     return true;
   }
   return false;

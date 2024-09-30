@@ -1,7 +1,8 @@
 import EventEmitter from "node:events";
 import { curry, pipe } from "ramda";
 import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
-import { log } from "../log.ts";
+import { logs } from "../log.ts";
+const { main: log } = logs;
 import {
   type Modify,
   publishDeviceBirth,

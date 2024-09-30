@@ -2,7 +2,7 @@
   "version": "3",
   "packages": {
     "specifiers": {
-      "jsr:@joyautomation/coral@^0.0.10": "jsr:@joyautomation/coral@0.0.10",
+      "jsr:@joyautomation/coral@^0.0.12": "jsr:@joyautomation/coral@0.0.12",
       "jsr:@m3o/version@^0.1.11": "jsr:@m3o/version@0.1.11",
       "jsr:@std/assert@1": "jsr:@std/assert@1.0.4",
       "jsr:@std/assert@^1.0.3": "jsr:@std/assert@1.0.3",
@@ -10,7 +10,7 @@
       "jsr:@std/data-structures@^1.0.2": "jsr:@std/data-structures@1.0.2",
       "jsr:@std/expect": "jsr:@std/expect@1.0.1",
       "jsr:@std/expect@^1.0.2": "jsr:@std/expect@1.0.2",
-      "jsr:@std/fmt@1.0.1": "jsr:@std/fmt@1.0.1",
+      "jsr:@std/fmt@^1.0.2": "jsr:@std/fmt@1.0.2",
       "jsr:@std/fs@^1.0.3": "jsr:@std/fs@1.0.3",
       "jsr:@std/internal@^1.0.2": "jsr:@std/internal@1.0.2",
       "jsr:@std/internal@^1.0.3": "jsr:@std/internal@1.0.3",
@@ -42,10 +42,10 @@
       "npm:sparkplug-payload@^1.0.3": "npm:sparkplug-payload@1.0.3"
     },
     "jsr": {
-      "@joyautomation/coral@0.0.10": {
-        "integrity": "1edfd32114d2173bf4df0eedda893d7c63cb84c221489c1742e4f043f9dca540",
+      "@joyautomation/coral@0.0.12": {
+        "integrity": "a95c60c93c2fb9f434437fd975979038e3358f65621f55e9fd5b8d831aeda1ee",
         "dependencies": [
-          "jsr:@std/fmt@1.0.1"
+          "jsr:@std/fmt@^1.0.2"
         ]
       },
       "@m3o/version@0.1.11": {
@@ -83,8 +83,8 @@
           "jsr:@std/internal@^1.0.3"
         ]
       },
-      "@std/fmt@1.0.1": {
-        "integrity": "ef76c37faa7720faa8c20fd8cc74583f9b1e356dfd630c8714baa716a45856ab"
+      "@std/fmt@1.0.2": {
+        "integrity": "87e9dfcdd3ca7c066e0c3c657c1f987c82888eb8103a3a3baa62684ffeb0f7a7"
       },
       "@std/fs@1.0.3": {
         "integrity": "3cb839b1360b0a42d8b367c3093bfe4071798e6694fa44cf1963e04a8edba4fe",
@@ -554,7 +554,7 @@
   "remote": {},
   "workspace": {
     "dependencies": [
-      "jsr:@joyautomation/coral@^0.0.10",
+      "jsr:@joyautomation/coral@^0.0.12",
       "jsr:@m3o/version@^0.1.11",
       "jsr:@std/assert@1",
       "jsr:@std/expect@^1.0.2",
