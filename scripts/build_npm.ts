@@ -7,33 +7,39 @@ await build({
   entryPoints: ["./index.ts"],
   importMap: "./deno.json",
   outDir: "./npm",
-  typeCheck: false,
+  typeCheck: "both",
+  filterDiagnostic(diagnostic) {
+    return diagnostic.code !== 7016;
+  },
   test: false,
   shims: {
     // see JS docs for overview and more options
     deno: true,
-    custom: [{
-      // this is what `domException: true` does internally
-      package: {
-        name: "ramda",
-        version: "^0.29.0",
+    custom: [
+      {
+        // this is what `domException: true` does internally
+        package: {
+          name: "ramda",
+          version: "^0.29.0",
+        },
+        typesPackage: {
+          name: "@types/ramda",
+          version: "^0.30.1",
+        },
+        globalNames: [],
       },
-      typesPackage: {
-        name: "@types/ramda",
-        version: "^0.30.1",
+      {
+        package: {
+          name: "pako",
+          version: "^2.1.0",
+        },
+        typesPackage: {
+          name: "@types/pako",
+          version: "^2.0.3",
+        },
+        globalNames: [],
       },
-      globalNames: [],
-    }, {
-      package: {
-        name: "pako",
-        version: "^2.1.0",
-      },
-      typesPackage: {
-        name: "@types/pako",
-        version: "^2.0.3",
-      },
-      globalNames: [],
-    }],
+    ],
   },
   package: {
     // package.json properties
