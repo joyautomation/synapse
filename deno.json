@@ -16,6 +16,7 @@
     "test:watch": "deno test --allow-env --watch"
   },
   "imports": {
+    "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
     "@joyautomation/coral": "jsr:@joyautomation/coral@^0.0.12",
     "@m3o/version": "jsr:@m3o/version@^0.1.11",
     "@std/assert": "jsr:@std/assert@1",
@@ -26,6 +27,6 @@
     "mqtt": "npm:mqtt@^5.10.1",
     "pako": "npm:pako@^2.1.0",
     "ramda": "npm:ramda@^0.30.1",
-    "sparkplug-payload": "npm:sparkplug-payload@^1.0.3"
+    "sparkplug-payload": "npm:sparkplug-payload@1.0.3"
   }
 }
