@@ -392,7 +392,6 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
     "Node needs to be connected to be disconnected",
     "disconnect",
   );
-on;
 /**
  * Sets the last published timestamp and value for a given metric in a Sparkplug Node or Device.
  *
