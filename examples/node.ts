@@ -4,7 +4,7 @@ import type {
   SparkplugCreateDeviceInput,
   SparkplugCreateNodeInput,
   SparkplugMetric,
-} from "../types.d.ts";
+} from "../types.ts";
 
 const nodeMetrics: { [id: string]: SparkplugMetric } = {
   testNodeMetric1: {
@@ -62,9 +62,11 @@ const config: SparkplugCreateNodeInput = {
 const node = await createNode(config);
 
 setInterval(() => {
-  if (typeof nodeMetrics["testNodeMetric1"].value === "number")
+  if (typeof nodeMetrics["testNodeMetric1"].value === "number") {
     node.metrics["testNodeMetric1"].value =
       nodeMetrics["testNodeMetric1"].value + 1;
-  if (typeof metrics["testMetric2"].value === "number")
+  }
+  if (typeof metrics["testMetric2"].value === "number") {
     metrics["testMetric2"].value = metrics["testMetric2"].value + 1;
+  }
 }, 5000);

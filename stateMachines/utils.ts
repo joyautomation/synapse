@@ -9,7 +9,7 @@ import type {
   SparkplugHost,
   SparkplugMetric,
   SparkplugNode,
-} from "../types.d.ts";
+} from "../types.ts";
 import { handleMessage } from "../mqtt.ts";
 import { getUnixTime } from "date-fns";
 

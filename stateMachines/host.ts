@@ -8,7 +8,7 @@ import type {
   SparkplugNode,
   SparkplugNodeFlat,
   SparkplugTopic,
-} from "../types.d.ts";
+} from "../types.ts";
 import { curry, pipe } from "ramda";
 import { logs } from "../log.ts";
 const { main: log } = logs;
@@ -21,7 +21,7 @@ import {
 } from "../mqtt.ts";
 import type mqtt from "mqtt";
 import { cond, setStateCurry as setState } from "../utils.ts";
-import type { HostTransition } from "./types.d.ts";
+import type { HostTransition } from "./types.ts";
 import {
   flatten,
   getMqttConfigFromSparkplug,

@@ -5,7 +5,7 @@ import type {
   SparkplugHost,
   SparkplugNode,
   SparkplugTopic,
-} from "./types.d.ts";
+} from "./types.ts";
 import * as sparkplug from "npm:sparkplug-payload@1.0.3";
 import { pipe } from "ramda";
 import { logs } from "./log.ts";
@@ -18,7 +18,7 @@ import {
   compressPayloadCurry as compressPayloadCurry,
   decompressPayload,
 } from "./compression/index.ts";
-import type { PayloadOptions } from "./compression/types.d.ts";
+import type { PayloadOptions } from "./compression/types.ts";
 import { cond } from "./utils.ts";
 import type { EventEmitter } from "node:events";
 import { Buffer } from "node:buffer";

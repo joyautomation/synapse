@@ -1,12 +1,9 @@
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { getMqttConfigFromSparkplug } from "./utils.ts";
-import type { SparkplugHost, SparkplugNode } from "../types.d.ts";
+import type { SparkplugHost, SparkplugNode } from "../types.ts";
 
-import type {
-  ISparkplugEdgeOptions,
-  ISparkplugHostOptions,
-} from "../types.d.ts";
+import type { ISparkplugEdgeOptions, ISparkplugHostOptions } from "../types.ts";
 
 const commonInput = {
   clientId: "test1",

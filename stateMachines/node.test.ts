@@ -10,7 +10,7 @@ import type {
   SparkplugCreateNodeInput,
   SparkplugMetric,
   SparkplugNode,
-} from "../types.d.ts";
+} from "../types.ts";
 import type { IDisconnectPacket, MqttClient } from "mqtt";
 import type mqtt from "mqtt";
 import { assertSpyCalls, Spy, spy, stub } from "@std/testing/mock";

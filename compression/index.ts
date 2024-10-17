@@ -1,7 +1,7 @@
 import Long from "long";
 import { pipe } from "ramda";
 import { deflate, gzip, inflate, ungzip } from "pako";
-import type { CompressPayloadInput, PayloadOptions } from "./types.d.ts";
+import type { CompressPayloadInput, PayloadOptions } from "./types.ts";
 import {
   decodePayload,
   encodePayload,

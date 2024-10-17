@@ -5,7 +5,7 @@ import type {
   SparkplugMetric,
   SparkplugNode,
   SparkplugNodeScanRates,
-} from "../types.d.ts";
+} from "../types.ts";
 import { curry, pipe } from "ramda";
 import {
   createMqttClient,
@@ -36,7 +36,7 @@ import {
   on,
   onCurry,
 } from "./utils.ts";
-import type { NodeEvent, NodeTransition } from "./types.d.ts";
+import type { NodeEvent, NodeTransition } from "./types.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
 import type { OnConnectCallback, OnDisconnectCallback } from "mqtt";
