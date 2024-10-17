@@ -1,7 +1,7 @@
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { createHost, disconnectHost, flattenHostGroups } from "./host.ts";
-import type { SparkplugCreateHostInput, SparkplugHost } from "../types.d.ts";
+import type { SparkplugCreateHostInput, SparkplugHost } from "../types.ts";
 import type { MqttClient } from "mqtt";
 import type mqtt from "mqtt";
 import { assertSpyCalls, spy, stub } from "@std/testing/mock";

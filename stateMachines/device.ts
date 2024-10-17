@@ -14,7 +14,7 @@ import type {
   SparkplugDevice,
   SparkplugMetric,
   SparkplugNode,
-} from "../types.d.ts";
+} from "../types.ts";
 import { setStateCurry as setState } from "../utils.ts";
 import { evaluateMetrics, getMqttConfigFromSparkplug } from "./utils.ts";
 

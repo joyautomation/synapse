@@ -22,4 +22,4 @@ export type NodeEvent =
   | "nbirth"
   | "ndeath";
 
-type NodeTransition = "connect" | "disconnect" | "birth" | "death";
+export type NodeTransition = "connect" | "disconnect" | "birth" | "death";
