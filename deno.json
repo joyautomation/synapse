@@ -8,7 +8,10 @@
   "homepage": "https://github.com/joyautomation/synapse#readme",
   "bugs": "https://github.com/joyautomation/synapse/issues",
   "declaration": true,
-  "exports": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./types": "./types.ts"
+  },
   "tasks": {
     "example:host": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/host.ts ",
     "example:node": "deno run --env-file=.env --allow-env --allow-net --allow-read --allow-write --watch examples/node.ts ",
