@@ -82,4 +82,4 @@ export { flattenHostGroups } from "./stateMachines/host.ts";
  */
 export { disableLog, enableLog, logs, setLogLevel } from "./log.ts";
 
-export type * from "./types.ts";
+export * from "./types.ts";
