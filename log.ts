@@ -7,7 +7,7 @@ import {
 } from "@joyautomation/coral";
 
 export function getLogLevel(): LogLevel {
-  const envLogLevel = Deno.env.get("TENTACLE_LOG_LEVEL");
+  const envLogLevel = Deno.env.get("SYNAPSE_LOG_LEVEL");
   if (envLogLevel && envLogLevel in LogLevel) {
     return LogLevel[envLogLevel as keyof typeof LogLevel];
   }

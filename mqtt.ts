@@ -281,7 +281,11 @@ export const publish = (
   message: string | Buffer,
   client: mqtt.MqttClient,
 ) => {
-  client.publish(topic, message);
+  try {
+    client.publish(topic, message);
+  } catch (error) {
+    log.error(`Error publishing message to topic ${topic}: ${error.stack}`);
+  }
 };
 
 /**
