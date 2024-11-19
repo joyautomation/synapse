@@ -83,3 +83,5 @@ export { flattenHostGroups } from "./stateMachines/host.ts";
 export { disableLog, enableLog, logs, setLogLevel } from "./log.ts";
 
 export * from "./types.ts";
+
+export * from "./mqtt.ts";
