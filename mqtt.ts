@@ -69,7 +69,7 @@ export const createSpbTopic = (
     | "DDEATH"
     | "DDATA",
   { version, groupId, edgeNode }: ISparkplugEdgeOptions,
-  deviceId?: string,
+  deviceId?: string
 ) =>
   `${version}/${groupId}/${commandType}/${edgeNode}${
     deviceId ? "/" + deviceId : ""
@@ -107,7 +107,8 @@ export const addBdSeqMetric = (bdSeq: number, payload: UPayload): UPayload => ({
  * @returns {Function} Curried function that takes a payload and returns a modified payload
  */
 export const addBdSeqMetricCurry =
-  (bdSeq: number) => (payload: UPayload): UPayload =>
+  (bdSeq: number) =>
+  (payload: UPayload): UPayload =>
     addBdSeqMetric(bdSeq, payload);
 
 /**
@@ -118,7 +119,7 @@ export const addBdSeqMetricCurry =
  */
 export const addSeqNumber = (
   sparkplug: SparkplugNode | SparkplugHost,
-  payload: UPayload,
+  payload: UPayload
 ): UPayload => {
   if (sparkplug.seq == 256) sparkplug.seq = 0;
   return {
@@ -133,7 +134,8 @@ export const addSeqNumber = (
  * @returns {Function} Curried function that takes a payload and returns a modified payload
  */
 export const addSeqNumberCurry =
-  (sparkplug: SparkplugNode | SparkplugHost) => (payload: UPayload): UPayload =>
+  (sparkplug: SparkplugNode | SparkplugHost) =>
+  (payload: UPayload): UPayload =>
     addSeqNumber(sparkplug, payload);
 
 /**
@@ -145,7 +147,7 @@ export const addSeqNumberCurry =
 export const publishNodeDeath = (
   bdSeq: number,
   mqttConfig: ISparkplugEdgeOptions,
-  client: mqtt.MqttClient,
+  client: mqtt.MqttClient
 ) => {
   const payload = getDeathPayload(bdSeq);
   const topic = createSpbTopic("NDEATH", mqttConfig);
@@ -167,7 +169,7 @@ export const publishNodeBirth = (
   options: PayloadOptions | undefined,
   payload: UPayload,
   mqttConfig: ISparkplugEdgeOptions,
-  client: mqtt.MqttClient,
+  client: mqtt.MqttClient
 ) => {
   const topic = createSpbTopic("NBIRTH", mqttConfig);
   publish(
@@ -176,9 +178,9 @@ export const publishNodeBirth = (
       addBdSeqMetricCurry(bdSeq),
       compressPayloadCurry(options),
       encodePayload,
-      toBuffer,
+      toBuffer
     )(payload) as Buffer,
-    client,
+    client
   );
   log.info(`published node ${mqttConfig.edgeNode} birth`);
 };
@@ -195,14 +197,14 @@ const publishPayload =
     payload: UPayload,
     mqttConfig: ISparkplugEdgeOptions,
     client: mqtt.MqttClient,
-    deviceId?: string,
+    deviceId?: string
   ) => {
     const topic = createSpbTopic(command, mqttConfig, deviceId);
     if (command === "NDATA") {
       log.debug(`Publishing NDATA on node ${mqttConfig.edgeNode}`);
     } else {
       log.debug(
-        `Publishing Device ${deviceId} ${command} on node ${mqttConfig.edgeNode}`,
+        `Publishing Device ${deviceId} ${command} on node ${mqttConfig.edgeNode}`
       );
     }
     publish(
@@ -211,9 +213,9 @@ const publishPayload =
         addSeqNumberCurry(sparkplug) as Modify<UPayload>,
         compressPayloadCurry(sparkplug.payloadOptions) as Modify<UPayload>,
         encodePayload,
-        toBuffer,
+        toBuffer
       )(payload) as Buffer,
-      client,
+      client
     );
   };
 
@@ -225,7 +227,8 @@ export const publishNodeData = publishPayload("NDATA");
 const createCommandPayload = (
   command: "NCMD" | "DCMD",
   commandName: string,
-  value: UMetric["value"],
+  type: UMetric["type"],
+  value: UMetric["value"]
 ): UPayload => ({
   metrics: [
     {
@@ -233,39 +236,41 @@ const createCommandPayload = (
         command == "NCMD" ? "Node Control" : "Device Control"
       }/${commandName}`,
       value,
-      type: "Boolean",
+      type,
     },
   ],
 });
 
-const publishCommand = (command: "NCMD" | "DCMD") =>
-(
-  sparkplug: SparkplugHost,
-  commandName: string,
-  value: UMetric["value"],
-  groupId: string,
-  edgeNode: string,
-  mqttConfig: ISparkplugHostOptions,
-  client: mqtt.MqttClient,
-  deviceId?: string,
-) => {
-  const topic = createSpbTopic(
-    command,
-    { ...mqttConfig, groupId, edgeNode },
-    deviceId,
-  );
-  const payload = createCommandPayload(command, commandName, value);
-  publish(
-    topic,
-    pipe(
-      addSeqNumberCurry(sparkplug) as Modify<UPayload>,
-      compressPayloadCurry(sparkplug.payloadOptions) as Modify<UPayload>,
-      encodePayload,
-      toBuffer,
-    )(payload) as Buffer,
-    client,
-  );
-};
+const publishCommand =
+  (command: "NCMD" | "DCMD") =>
+  (
+    sparkplug: SparkplugHost,
+    commandName: string,
+    type: UMetric["type"],
+    value: UMetric["value"],
+    groupId: string,
+    edgeNode: string,
+    mqttConfig: ISparkplugHostOptions,
+    client: mqtt.MqttClient,
+    deviceId?: string
+  ) => {
+    const topic = createSpbTopic(
+      command,
+      { ...mqttConfig, groupId, edgeNode },
+      deviceId
+    );
+    const payload = createCommandPayload(command, commandName, type, value);
+    publish(
+      topic,
+      pipe(
+        addSeqNumberCurry(sparkplug) as Modify<UPayload>,
+        compressPayloadCurry(sparkplug.payloadOptions) as Modify<UPayload>,
+        encodePayload,
+        toBuffer
+      )(payload) as Buffer,
+      client
+    );
+  };
 
 export const publishNodeCommand = publishCommand("NCMD");
 export const publishDeviceCommand = publishCommand("DCMD");
@@ -279,12 +284,16 @@ export const publishDeviceCommand = publishCommand("DCMD");
 export const publish = (
   topic: string,
   message: string | Buffer,
-  client: mqtt.MqttClient,
+  client: mqtt.MqttClient
 ) => {
   try {
     client.publish(topic, message);
-  } catch (error) {
-    log.error(`Error publishing message to topic ${topic}: ${error.stack}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      log.error(`Error publishing message to topic ${topic}: ${error.stack}`);
+    } else {
+      log.error(`Error publishing message to topic ${topic}: ${String(error)}`);
+    }
   }
 };
 
@@ -301,7 +310,7 @@ export const subscribe = (
     | mqtt.IClientSubscribeOptions
     | mqtt.IClientSubscribeProperties
     | undefined,
-  mqttClient: mqtt.MqttClient,
+  mqttClient: mqtt.MqttClient
 ) => {
   log.info("subscribed to " + topic);
   mqttClient.subscribe(topic, options);
@@ -316,7 +325,8 @@ export const subscribe = (
  */
 export const subscribeCurry =
   (topic: string, options: mqtt.IClientSubscribeOptions) =>
-  (mqttClient: mqtt.MqttClient) => subscribe(topic, options, mqttClient);
+  (mqttClient: mqtt.MqttClient) =>
+    subscribe(topic, options, mqttClient);
 
 /**
  * Unsubscribes from an MQTT topic
@@ -328,7 +338,7 @@ export const subscribeCurry =
 export const unsubscribe = (
   topic: string,
   options: mqtt.IClientSubscribeOptions,
-  mqttClient: mqtt.MqttClient,
+  mqttClient: mqtt.MqttClient
 ) => {
   log.info("unsubscribed from " + topic);
   mqttClient.unsubscribe(topic, options);
@@ -494,7 +504,7 @@ const createCommandAction =
     emitter.emit(
       key.toLowerCase(),
       topic,
-      decodePayload(decompressPayload(message)),
+      decodePayload(decompressPayload(message))
     );
     log.debug(`${key} message received for ${parseTopicMessage(topic)}`);
   };
@@ -507,7 +517,7 @@ const createCommandAction =
  */
 const createHandleEdgeCommands = (
   emitter: EventEmitter,
-  mqttConfig: ISparkplugEdgeOptions,
+  mqttConfig: ISparkplugEdgeOptions
 ) => {
   return edgeCommands.map(
     (key): SpbMessageConditional => ({
@@ -517,7 +527,7 @@ const createHandleEdgeCommands = (
         key === topic.commandType &&
         mqttConfig.edgeNode === topic.edgeNode,
       action: createCommandAction(key, emitter),
-    }),
+    })
   );
 };
 
@@ -529,14 +539,14 @@ const createHandleEdgeCommands = (
  */
 const createHandleHostCommands = (
   emitter: EventEmitter,
-  mqttConfig: ISparkplugHostOptions,
+  mqttConfig: ISparkplugHostOptions
 ) => {
   return commands.map(
     (key): SpbMessageConditional => ({
       condition: ({ topic }) =>
         mqttConfig.version === topic.version && key === topic.commandType,
       action: createCommandAction(key, emitter),
-    }),
+    })
   );
 };
 
@@ -561,11 +571,11 @@ export const handleMessage = (
   topic: string,
   message: Buffer,
   emitter: EventEmitter,
-  mqttConfig: ISparkplugEdgeOptions | ISparkplugHostOptions,
+  mqttConfig: ISparkplugEdgeOptions | ISparkplugHostOptions
 ) => {
   const spbTopic = parseSpbTopic(topic);
   const isEdgeConfig = (
-    config: ISparkplugEdgeOptions | ISparkplugHostOptions,
+    config: ISparkplugEdgeOptions | ISparkplugHostOptions
   ): config is ISparkplugEdgeOptions => {
     return "groupId" in config && "edgeNode" in config;
   };
@@ -577,7 +587,9 @@ export const handleMessage = (
       condition: ({ topic }) => topic.version === "STATE",
       action: ({ topic, message }) => {
         log.info(
-          `STATE message received for ${topic.groupId}, it is ${message.toString()}`,
+          `STATE message received for ${
+            topic.groupId
+          }, it is ${message.toString()}`
         );
         emitter.emit("state", message.toString());
       },
@@ -590,7 +602,7 @@ export const handleMessage = (
         emitter.emit(
           "message",
           topic,
-          decodePayload(decompressPayload(message)),
+          decodePayload(decompressPayload(message))
         );
       },
     },

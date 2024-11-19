@@ -44,7 +44,7 @@ export const onConnect = (host: SparkplugHost) => {
     setHostStateConnected(host);
     publishHostOnline(host);
     log.info(
-      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`,
+      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`
     );
     host.events.emit("connected");
   };
@@ -55,9 +55,7 @@ export const onConnect = (host: SparkplugHost) => {
  * @param {SparkplugHost} host - The SparkplugHost instance.
  * @returns {() => void} A function to be called when the host disconnects.
  */
-export const onDisconnect = (
-  host: SparkplugHost,
-) => {
+export const onDisconnect = (host: SparkplugHost) => {
   return () => {
     setHostStateDisconnected(host);
     log.info(`${host.id} disconnected`);
@@ -90,26 +88,26 @@ const setupHostEvents = (host: SparkplugHost) => {
     pipe(
       onCurry<mqtt.MqttClient, "connect", mqtt.OnConnectCallback>(
         "connect",
-        onConnect(host),
+        onConnect(host)
       ),
       onCurry<mqtt.MqttClient, "message", mqtt.OnMessageCallback>(
         "message",
-        onMessage(host),
+        onMessage(host)
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
-        onDisconnect(host),
+        onDisconnect(host)
       ),
       onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
         "close",
-        onClose(host),
+        onClose(host)
       ),
       onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
         "error",
-        onError(host),
+        onError(host)
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
-      subscribeCurry(`${host.version}/#`, { qos: 0 }),
+      subscribeCurry(`${host.version}/#`, { qos: 0 })
     )(host.mqtt);
     createHostMessageEvents(host);
   }
@@ -200,28 +198,24 @@ const changeHostState = curry(
     inRequiredState: (host: SparkplugHost) => boolean,
     notInRequiredStateLogText: string,
     transition: HostTransition,
-    host: SparkplugHost,
+    host: SparkplugHost
   ) => {
     if (!inRequiredState(host)) {
       log.info(
-        `${notInRequiredStateLogText}, it is currently: ${
-          getHostStateString(
-            host,
-          )
-        }`,
+        `${notInRequiredStateLogText}, it is currently: ${getHostStateString(
+          host
+        )}`
       );
     } else {
       log.info(
-        `Host ${host.id} transitioning from ${
-          getHostStateString(
-            host,
-          )
-        } to ${transition}`,
+        `Host ${host.id} transitioning from ${getHostStateString(
+          host
+        )} to ${transition}`
       );
       hostTransitions[transition](host);
     }
     return host;
-  },
+  }
 );
 
 /**
@@ -232,7 +226,7 @@ const changeHostState = curry(
 const connectHost = changeHostState(
   (host: SparkplugHost) => host.states.disconnected,
   "Host needs to be disconnected to be connected",
-  "connect",
+  "connect"
 );
 
 /**
@@ -244,7 +238,7 @@ export const disconnectHost: (host: SparkplugHost) => SparkplugHost =
   changeHostState(
     (host: SparkplugHost) => host.states.connected,
     "Host needs to be connected to be disconnected",
-    "disconnect",
+    "disconnect"
   );
 
 /**
@@ -279,11 +273,7 @@ type DataEventConditionArgs = {
   message: UPayload;
 };
 
-const updateHostMetric = ({
-  host,
-  topic,
-  message,
-}: DataEventConditionArgs) => {
+const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode, deviceId } = topic;
   message.metrics?.forEach((metric: UMetric) => {
     if (deviceId) {
@@ -291,8 +281,9 @@ const updateHostMetric = ({
         publishNodeRebirthRequest(host, topic);
       } else {
         if (metric.name) {
-          host.groups[groupId].nodes[edgeNode].devices[deviceId]
-            .metrics[metric.name] = metric;
+          host.groups[groupId].nodes[edgeNode].devices[deviceId].metrics[
+            metric.name
+          ] = metric;
         }
       }
     } else {
@@ -314,7 +305,7 @@ const updateHostMetric = ({
  * @returns {SparkplugGroupFlat[]} An array of flattened group objects, each containing flattened nodes, devices, and metrics.
  */
 export const flattenHostGroups = (
-  host: SparkplugHost,
+  host: SparkplugHost
 ): SparkplugGroupFlat[] => {
   return flatten(host.groups).map((group) => ({
     ...group,
@@ -354,11 +345,7 @@ export const flattenNode = (node: SparkplugNode): SparkplugNodeFlat => {
  * @param {SparkplugTopic} params.topic - The Sparkplug topic object containing groupId and edgeNode.
  * @param {UPayload} params.message - The payload message containing node metrics.
  */
-const createHostNode = ({
-  host,
-  topic,
-  message,
-}: DataEventConditionArgs) => {
+const createHostNode = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode } = topic;
   host.groups[groupId] = {
     id: groupId,
@@ -381,11 +368,7 @@ const createHostNode = ({
  * @param {SparkplugTopic} params.topic - The Sparkplug topic object containing groupId, edgeNode, and deviceId.
  * @param {UPayload} params.message - The payload message containing device metrics.
  */
-const createHostDevice = ({
-  host,
-  topic,
-  message,
-}: DataEventConditionArgs) => {
+const createHostDevice = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode, deviceId } = topic;
   if (deviceId) {
     if (!host.groups[groupId]?.nodes[edgeNode]) {
@@ -411,17 +394,18 @@ const createHostDevice = ({
  */
 const publishNodeRebirthRequest = (
   host: SparkplugHost,
-  topic: SparkplugTopic,
+  topic: SparkplugTopic
 ) => {
   if (host.mqtt) {
     publishNodeCommand(
       host,
       "Rebirth",
+      "Boolean",
       true,
       topic.groupId,
       topic.edgeNode,
       getMqttConfigFromSparkplug(host),
-      host.mqtt,
+      host.mqtt
     );
   }
 };
@@ -465,12 +449,13 @@ const processDataEvent =
           message: UPayload;
         },
         void
-      >(
-        { event, host, topic, message },
-        dataEventConditions,
-      );
-    } catch (error) {
-      log.error(error.stack);
+      >({ event, host, topic, message }, dataEventConditions);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        log.error(error.stack);
+      } else {
+        log.error("Unknown error occurred");
+      }
     }
   };
 
@@ -483,7 +468,7 @@ export const createHostMessageEvents = (host: SparkplugHost) => {
   ["nbirth", "dbirth", "ndata", "ddata"].forEach((event) => {
     host.events.on(
       event,
-      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata"),
+      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata")
     );
   });
 };
