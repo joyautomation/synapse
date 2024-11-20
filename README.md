@@ -6,7 +6,8 @@ Synpase is a an MQTT Sparkplug B Client for use with the project Kraken stack.
 
 ### Host
 
-To create a Sparkplug B host, wihch is meant to consume data and has the Primary Host feature Sparkplug B uses for implementing Store & Forward.
+To create a Sparkplug B host, wihch is meant to consume data and has the Primary
+Host feature Sparkplug B uses for implementing Store & Forward.
 
 ```typescript
 import { nanoid } from "npm:nanoid";
@@ -28,7 +29,8 @@ const host = await createHost(config);
 
 ### (Edge) Node
 
-To create a Sparkplug B node, which is meant to publish real time Sparkplug B data to hosts.
+To create a Sparkplug B node, which is meant to publish real time Sparkplug B
+data to hosts.
 
 ```typescript
 import { nanoid } from "npm:nanoid";
@@ -91,14 +93,17 @@ const config: SparkplugCreateNodeInput = {
 const node = await createNode(config);
 
 setInterval(() => {
-  if (typeof nodeMetrics["testNodeMetric1"].value === "number")
+  if (typeof nodeMetrics["testNodeMetric1"].value === "number") {
     node.metrics["testNodeMetric1"].value =
       nodeMetrics["testNodeMetric1"].value + 1;
-  if (typeof metrics["testMetric"].value === "number")
+  }
+  if (typeof metrics["testMetric"].value === "number") {
     metrics["testMetric"].value = metrics["testMetric"].value + 1;
+  }
 }, 5000);
 ```
 
 ## Environment Variables
 
-SYNAPSE_LOG_LEVEL: set to `debug`, `info`, `warn`, or `error` to control which logs are console logged.
+SYNAPSE_LOG_LEVEL: set to `debug`, `info`, `warn`, or `error` to control which
+logs are console logged.

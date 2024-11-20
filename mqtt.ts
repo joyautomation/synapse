@@ -225,6 +225,7 @@ export const publishNodeData = publishPayload("NDATA");
 const createCommandPayload = (
   command: "NCMD" | "DCMD",
   commandName: string,
+  type: UMetric["type"],
   value: UMetric["value"],
 ): UPayload => ({
   metrics: [
@@ -233,7 +234,7 @@ const createCommandPayload = (
         command == "NCMD" ? "Node Control" : "Device Control"
       }/${commandName}`,
       value,
-      type: "Boolean",
+      type,
     },
   ],
 });
@@ -242,6 +243,7 @@ const publishCommand = (command: "NCMD" | "DCMD") =>
 (
   sparkplug: SparkplugHost,
   commandName: string,
+  type: UMetric["type"],
   value: UMetric["value"],
   groupId: string,
   edgeNode: string,
@@ -254,7 +256,7 @@ const publishCommand = (command: "NCMD" | "DCMD") =>
     { ...mqttConfig, groupId, edgeNode },
     deviceId,
   );
-  const payload = createCommandPayload(command, commandName, value);
+  const payload = createCommandPayload(command, commandName, type, value);
   publish(
     topic,
     pipe(
@@ -283,8 +285,12 @@ export const publish = (
 ) => {
   try {
     client.publish(topic, message);
-  } catch (error) {
-    log.error(`Error publishing message to topic ${topic}: ${error.stack}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      log.error(`Error publishing message to topic ${topic}: ${error.stack}`);
+    } else {
+      log.error(`Error publishing message to topic ${topic}: ${String(error)}`);
+    }
   }
 };
 

@@ -55,9 +55,7 @@ export const onConnect = (host: SparkplugHost) => {
  * @param {SparkplugHost} host - The SparkplugHost instance.
  * @returns {() => void} A function to be called when the host disconnects.
  */
-export const onDisconnect = (
-  host: SparkplugHost,
-) => {
+export const onDisconnect = (host: SparkplugHost) => {
   return () => {
     setHostStateDisconnected(host);
     log.info(`${host.id} disconnected`);
@@ -279,11 +277,7 @@ type DataEventConditionArgs = {
   message: UPayload;
 };
 
-const updateHostMetric = ({
-  host,
-  topic,
-  message,
-}: DataEventConditionArgs) => {
+const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode, deviceId } = topic;
   message.metrics?.forEach((metric: UMetric) => {
     if (deviceId) {
@@ -291,8 +285,9 @@ const updateHostMetric = ({
         publishNodeRebirthRequest(host, topic);
       } else {
         if (metric.name) {
-          host.groups[groupId].nodes[edgeNode].devices[deviceId]
-            .metrics[metric.name] = metric;
+          host.groups[groupId].nodes[edgeNode].devices[deviceId].metrics[
+            metric.name
+          ] = metric;
         }
       }
     } else {
@@ -354,11 +349,7 @@ export const flattenNode = (node: SparkplugNode): SparkplugNodeFlat => {
  * @param {SparkplugTopic} params.topic - The Sparkplug topic object containing groupId and edgeNode.
  * @param {UPayload} params.message - The payload message containing node metrics.
  */
-const createHostNode = ({
-  host,
-  topic,
-  message,
-}: DataEventConditionArgs) => {
+const createHostNode = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode } = topic;
   host.groups[groupId] = {
     id: groupId,
@@ -381,11 +372,7 @@ const createHostNode = ({
  * @param {SparkplugTopic} params.topic - The Sparkplug topic object containing groupId, edgeNode, and deviceId.
  * @param {UPayload} params.message - The payload message containing device metrics.
  */
-const createHostDevice = ({
-  host,
-  topic,
-  message,
-}: DataEventConditionArgs) => {
+const createHostDevice = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode, deviceId } = topic;
   if (deviceId) {
     if (!host.groups[groupId]?.nodes[edgeNode]) {
@@ -417,6 +404,7 @@ const publishNodeRebirthRequest = (
     publishNodeCommand(
       host,
       "Rebirth",
+      "Boolean",
       true,
       topic.groupId,
       topic.edgeNode,
@@ -465,12 +453,13 @@ const processDataEvent =
           message: UPayload;
         },
         void
-      >(
-        { event, host, topic, message },
-        dataEventConditions,
-      );
-    } catch (error) {
-      log.error(error.stack);
+      >({ event, host, topic, message }, dataEventConditions);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        log.error(error.stack);
+      } else {
+        log.error("Unknown error occurred");
+      }
     }
   };
 
