@@ -5,6 +5,7 @@
       "jsr:@david/code-block-writer@^13.0.2": "jsr:@david/code-block-writer@13.0.3",
       "jsr:@deno/cache-dir@^0.10.3": "jsr:@deno/cache-dir@0.10.3",
       "jsr:@deno/dnt@^0.41.3": "jsr:@deno/dnt@0.41.3",
+      "jsr:@deno/graph@^0.73.1": "jsr:@deno/graph@0.73.1",
       "jsr:@joyautomation/coral@^0.0.12": "jsr:@joyautomation/coral@0.0.12",
       "jsr:@m3o/version@^0.1.11": "jsr:@m3o/version@0.1.11",
       "jsr:@std/assert@1": "jsr:@std/assert@1.0.4",
@@ -63,6 +64,7 @@
       "@deno/cache-dir@0.10.3": {
         "integrity": "eb022f84ecc49c91d9d98131c6e6b118ff63a29e343624d058646b9d50404776",
         "dependencies": [
+          "jsr:@deno/graph@^0.73.1",
           "jsr:@std/fmt@^0.223",
           "jsr:@std/fs@^0.223",
           "jsr:@std/io@^0.223",
@@ -79,6 +81,9 @@
           "jsr:@std/path@1",
           "jsr:@ts-morph/bootstrap@^0.24.0"
         ]
+      },
+      "@deno/graph@0.73.1": {
+        "integrity": "cd69639d2709d479037d5ce191a422eabe8d71bb68b0098344f6b07411c84d41"
       },
       "@joyautomation/coral@0.0.12": {
         "integrity": "a95c60c93c2fb9f434437fd975979038e3358f65621f55e9fd5b8d831aeda1ee",

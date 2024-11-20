@@ -4,8 +4,8 @@ import { build, emptyDir } from "@deno/dnt";
 await emptyDir("./npm");
 
 await build({
-  entryPoints: ["./index.ts"],
-  importMap: "./deno.json",
+  entryPoints: ["../index.ts"],
+  importMap: "../deno.json",
   outDir: "./npm",
   typeCheck: "both",
   filterDiagnostic(diagnostic) {
@@ -57,7 +57,7 @@ await build({
   },
   postBuild() {
     // steps to run after building and before running the tests
-    Deno.copyFileSync("LICENSE", "npm/LICENSE");
-    Deno.copyFileSync("README.md", "npm/README.md");
+    Deno.copyFileSync("../LICENSE", "npm/LICENSE");
+    Deno.copyFileSync("../README.md", "npm/README.md");
   },
 });
