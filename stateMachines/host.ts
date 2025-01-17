@@ -280,23 +280,24 @@ type DataEventConditionArgs = {
 const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode, deviceId } = topic;
   message.metrics?.forEach((metric: UMetric) => {
+    if (!host.groups[groupId]?.nodes[edgeNode]) {
+      publishNodeRebirthRequest(host, topic);
+    }
     if (deviceId) {
-      if (!host.groups[groupId]?.nodes[edgeNode]) {
-        publishNodeRebirthRequest(host, topic);
-      } else {
-        if (metric.name) {
-          host.groups[groupId].nodes[edgeNode].devices[deviceId].metrics[
-            metric.name
-          ] = metric;
-        }
+      if (!host.groups[groupId].nodes[edgeNode].devices[deviceId]) {
+        host.groups[groupId].nodes[edgeNode].devices[deviceId] = {
+          id: deviceId,
+          metrics: {},
+        };
+      }
+      if (metric.name) {
+        host.groups[groupId].nodes[edgeNode].devices[deviceId].metrics[
+          metric.name
+        ] = metric;
       }
     } else {
-      if (!host.groups[groupId]?.nodes[edgeNode]) {
-        publishNodeRebirthRequest(host, topic);
-      } else {
-        if (metric.name) {
-          host.groups[groupId].nodes[edgeNode].metrics[metric.name] = metric;
-        }
+      if (metric.name) {
+        host.groups[groupId].nodes[edgeNode].metrics[metric.name] = metric;
       }
     }
   });
