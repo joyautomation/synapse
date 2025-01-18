@@ -46,8 +46,8 @@ const version: string = "spBv1.0";
 /** Sparkplug B payload encoder/decoder instance */
 const spb: ReturnType<typeof sparkplug.get> = sparkplug.get(version)!;
 
-export const encodePayload: typeof spb.encodePayload = spb.encodePayload;
-export const decodePayload: typeof spb.decodePayload = spb.decodePayload;
+export const encodePayload = spb.encodePayload;
+export const decodePayload = spb.decodePayload;
 
 /**
  * Converts a Uint8Array to a Buffer
