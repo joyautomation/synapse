@@ -56,7 +56,7 @@ describe("compressPayload", () => {
     ],
   };
   const encodedPayload = encodePayload(payload);
-  const uncompressedPayload = {
+  const _uncompressedPayload = {
     body: encodePayload(payload),
   };
   const gzippedPayload = {

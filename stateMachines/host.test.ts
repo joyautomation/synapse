@@ -72,7 +72,7 @@ describe("The host state machine", () => {
     expect(host.mqtt).toBeDefined();
   });
 
-  it("changes to connected state when host connects", async () => {
+  it("changes to connected state when host connects", () => {
     const mockOnConnect = spy();
     host.events.on("connected", mockOnConnect);
     host.mqtt?.emit("connect", connectPacket); //simulate receiving a connect even from MQTT
@@ -83,7 +83,7 @@ describe("The host state machine", () => {
     });
   });
 
-  it("stores the groupId and nodeId of nbirth messages", async () => {
+  it("stores the groupId and nodeId of nbirth messages", () => {
     host.events.emit(
       "nbirth",
       { groupId: "testGroup", edgeNode: "testNode" },
@@ -98,7 +98,7 @@ describe("The host state machine", () => {
     ).toBeDefined();
   });
 
-  it("stores the deviceId of dbirth messages", async () => {
+  it("stores the deviceId of dbirth messages", () => {
     host.events.emit(
       "dbirth",
       { groupId: "testGroup", edgeNode: "testNode", deviceId: "testDevice" },

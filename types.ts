@@ -13,10 +13,10 @@ export type SparkplugClientType = "host" | "edge";
 /**
  * Represents an event listener function.
  * @typedef {Function} EventListener
- * @param {...any} args - The arguments passed to the event listener.
+ * @param {...unknown} args - The arguments passed to the event listener.
  * @returns {void}
  */
-export type EventListener = (...args: any[]) => void;
+export type EventListener = (...args: unknown[]) => void;
 
 /**
  * Interface for base Sparkplug options.

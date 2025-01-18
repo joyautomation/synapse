@@ -13,7 +13,7 @@ import type {
 } from "../types.ts";
 import type { IDisconnectPacket, MqttClient } from "mqtt";
 import type mqtt from "mqtt";
-import { assertSpyCalls, Spy, spy, stub } from "@std/testing/mock";
+import { assertSpyCalls, type Spy, spy, stub } from "@std/testing/mock";
 import { EventEmitter } from "node:events";
 import { _internals } from "../mqtt.ts";
 import { getUnixTime } from "date-fns";
@@ -179,7 +179,7 @@ describe("Node", () => {
       expect(metricNeedsToPublish(testMetric)).toBe(false);
     });
   });
-  it("disconnects properly when we tell it to", async () => {
+  it("disconnects properly when we tell it to", () => {
     const mockOnDisconnect = spy();
     node.events.on("disconnected", mockOnDisconnect);
     disconnectNode(node);
