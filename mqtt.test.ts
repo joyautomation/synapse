@@ -3,10 +3,10 @@ import { expect } from "@std/expect";
 import {
   assertSpyCall,
   assertSpyCalls,
-  Spy,
+  type Spy,
   spy,
   stub,
-} from "jsr:@std/testing/mock";
+} from "@std/testing/mock";
 import {
   createMqttClient,
   createPayload,
@@ -20,6 +20,9 @@ import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import { Buffer } from "node:buffer";
 import { _internals } from "./mqtt.ts";
 
+stub(console, "debug");
+stub(console, "info");
+stub(console, "error");
 describe("MQTT", () => {
   const mockConfig: ISparkplugEdgeOptions = {
     serverUrl: "mqtt://test.mosquitto.org",
@@ -50,8 +53,6 @@ describe("MQTT", () => {
     expect(client).toBeDefined();
   });
   it("handles messages correctly", () => {
-    using debugStub = stub(console, "debug");
-    using infoStub = stub(console, "info");
     const emitter = new EventEmitter();
 
     // Test NCMD message

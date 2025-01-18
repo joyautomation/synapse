@@ -14,14 +14,14 @@ export function getLogLevel(): LogLevel {
   return LogLevel.info;
 }
 
-const createTentacleLog = (name: string): Log =>
-  createLogger(`tentacle${name ? "-" : ""}${name}`, getLogLevel());
+const createSynapseLog = (name: string): Log =>
+  createLogger(`synapse${name ? "-" : ""}${name}`, getLogLevel());
 
-const rbe: Log = createTentacleLog("rbe");
+const rbe: Log = createSynapseLog("rbe");
 setCoralLogEnable(rbe, false);
 
 export const logs: Record<string, Log> = {
-  main: createTentacleLog(""),
+  main: createSynapseLog(""),
   rbe,
 };
 

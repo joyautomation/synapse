@@ -1,3 +1,5 @@
+import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
+
 /**
  * Finds the first conditional that matches the condition based on the args provided and executes its action.
  *
@@ -10,7 +12,7 @@ export const cond = <T, U>(
   conditionals: {
     condition: (input: T) => boolean;
     action: (input: T) => U;
-  }[],
+  }[]
 ) => {
   const conditional = conditionals.find(
     (conditional: {
@@ -18,7 +20,7 @@ export const cond = <T, U>(
       action: (input: T) => U;
     }) => {
       return conditional.condition(args);
-    },
+    }
   );
   if (!conditional) throw new Error("No conditional found");
   return conditional.action(args);
@@ -43,7 +45,7 @@ export const someTrue = (...values: boolean[]): boolean =>
  */
 export const setState = <U extends { states: T }, T>(
   state: Partial<T>,
-  entity: U,
+  entity: U
 ): U => {
   entity.states = { ...entity.states, ...state };
   return entity;
@@ -58,7 +60,8 @@ export const setState = <U extends { states: T }, T>(
  * @returns {(entity: U) => U} A function that takes an entity and returns the updated entity.
  */
 export const setStateCurry =
-  <U extends { states: T }, T>(state: Partial<T>) => (entity: U): U =>
+  <U extends { states: T }, T>(state: Partial<T>) =>
+  (entity: U): U =>
     setState(state, entity);
 
 /**
@@ -68,3 +71,7 @@ export const setStateCurry =
  * @returns {void}
  */
 export const taplog = (...args: unknown[]): void => console.log(...args);
+
+export const isBuffer = (
+  payload?: UPayload | Uint8Array | null
+): payload is Uint8Array => payload instanceof Uint8Array;
