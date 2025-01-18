@@ -64,10 +64,10 @@ describe("getMqttConfigFromSparkplug", () => {
     const invalidInput = {
       ...commonInput,
       // Missing both groupId and primaryHostId
-    } as any;
+    } as unknown as Parameters<typeof getMqttConfigFromSparkplug>[0];
 
     expect(() => getMqttConfigFromSparkplug(invalidInput)).toThrow(
-      "Invalid input type",
+      "Invalid input type"
     );
   });
 });

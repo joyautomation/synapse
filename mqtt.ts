@@ -29,7 +29,10 @@ import { Buffer } from "node:buffer";
  * @param {mqtt.IClientOptions} options - MQTT client options
  * @returns {mqtt.MqttClient} MQTT client instance
  */
-export function mqttConnect(url: string, options: mqtt.IClientOptions) {
+export function mqttConnect(
+  url: string,
+  options: mqtt.IClientOptions
+): mqtt.MqttClient {
   return mqtt.connect(url, options);
 }
 
@@ -41,15 +44,17 @@ export const _internals = {
 const version: string = "spBv1.0";
 
 /** Sparkplug B payload encoder/decoder instance */
-const spb = sparkplug.get(version)!;
-export const { encodePayload, decodePayload } = spb;
+const spb: ReturnType<typeof sparkplug.get> = sparkplug.get(version)!;
+
+export const encodePayload: typeof spb.encodePayload = spb.encodePayload;
+export const decodePayload: typeof spb.decodePayload = spb.decodePayload;
 
 /**
  * Converts a Uint8Array to a Buffer
  * @param {Uint8Array} payload - The payload to convert
  * @returns {Buffer} The converted Buffer
  */
-const toBuffer = (payload: Uint8Array) => Buffer.from(payload);
+const toBuffer = (payload: Uint8Array): Buffer => Buffer.from(payload);
 
 /**
  * Creates a Sparkplug B topic string
@@ -70,7 +75,7 @@ export const createSpbTopic = (
     | "DDATA",
   { version, groupId, edgeNode }: ISparkplugEdgeOptions,
   deviceId?: string
-) =>
+): string =>
   `${version}/${groupId}/${commandType}/${edgeNode}${
     deviceId ? "/" + deviceId : ""
   }`;
@@ -80,7 +85,7 @@ export const createSpbTopic = (
  * @param {any} payload - The payload object to encode
  * @returns {Buffer} Encoded payload as a Buffer
  */
-export const createPayload = (payload: UPayload) =>
+export const createPayload = (payload: UPayload): Buffer =>
   pipe(payload, encodePayload, toBuffer);
 
 /**
@@ -148,7 +153,7 @@ export const publishNodeDeath = (
   bdSeq: number,
   mqttConfig: ISparkplugEdgeOptions,
   client: mqtt.MqttClient
-) => {
+): void => {
   const payload = getDeathPayload(bdSeq);
   const topic = createSpbTopic("NDEATH", mqttConfig);
   publish(topic, pipe(payload, encodePayload, toBuffer), client);
@@ -170,7 +175,7 @@ export const publishNodeBirth = (
   payload: UPayload,
   mqttConfig: ISparkplugEdgeOptions,
   client: mqtt.MqttClient
-) => {
+): void => {
   const topic = createSpbTopic("NBIRTH", mqttConfig);
   publish(
     topic,
@@ -199,7 +204,7 @@ const publishPayload =
     mqttConfig: ISparkplugEdgeOptions,
     client: mqtt.MqttClient,
     deviceId?: string
-  ) => {
+  ): void => {
     const topic = createSpbTopic(command, mqttConfig, deviceId);
     if (command === "NDATA") {
       log.debug(`Publishing NDATA on node ${mqttConfig.edgeNode}`);
@@ -221,10 +226,12 @@ const publishPayload =
     );
   };
 
-export const publishDeviceDeath = publishPayload("DDEATH");
-export const publishDeviceBirth = publishPayload("DBIRTH");
-export const publishDeviceData = publishPayload("DDATA");
-export const publishNodeData = publishPayload("NDATA");
+type PublishPayload = ReturnType<typeof publishPayload>;
+
+export const publishDeviceDeath: PublishPayload = publishPayload("DDEATH");
+export const publishDeviceBirth: PublishPayload = publishPayload("DBIRTH");
+export const publishDeviceData: PublishPayload = publishPayload("DDATA");
+export const publishNodeData: PublishPayload = publishPayload("NDATA");
 
 const createCommandPayload = (
   command: "NCMD" | "DCMD",
@@ -255,7 +262,7 @@ const publishCommand =
     mqttConfig: ISparkplugHostOptions,
     client: mqtt.MqttClient,
     deviceId?: string
-  ) => {
+  ): void => {
     const topic = createSpbTopic(
       command,
       { ...mqttConfig, groupId, edgeNode },
@@ -275,8 +282,10 @@ const publishCommand =
     );
   };
 
-export const publishNodeCommand = publishCommand("NCMD");
-export const publishDeviceCommand = publishCommand("DCMD");
+export const publishNodeCommand: ReturnType<typeof publishCommand> =
+  publishCommand("NCMD");
+export const publishDeviceCommand: ReturnType<typeof publishCommand> =
+  publishCommand("DCMD");
 
 /**
  * Publishes a message to an MQTT topic
@@ -286,9 +295,9 @@ export const publishDeviceCommand = publishCommand("DCMD");
  */
 export const publish = (
   topic: string,
-  message: string | Buffer,
+  message: Buffer,
   client: mqtt.MqttClient
-) => {
+): void => {
   try {
     client.publish(topic, message);
   } catch (error: unknown) {
@@ -308,13 +317,10 @@ export const publish = (
  * @returns {mqtt.MqttClient} The MQTT client instance
  */
 export const subscribe = (
-  topic: string | string[],
-  options:
-    | mqtt.IClientSubscribeOptions
-    | mqtt.IClientSubscribeProperties
-    | undefined,
+  topic: string,
+  options: mqtt.IClientSubscribeOptions,
   mqttClient: mqtt.MqttClient
-) => {
+): mqtt.MqttClient => {
   log.info("subscribed to " + topic);
   mqttClient.subscribe(topic, options);
   return mqttClient;
@@ -328,7 +334,7 @@ export const subscribe = (
  */
 export const subscribeCurry =
   (topic: string, options: mqtt.IClientSubscribeOptions) =>
-  (mqttClient: mqtt.MqttClient) =>
+  (mqttClient: mqtt.MqttClient): mqtt.MqttClient =>
     subscribe(topic, options, mqttClient);
 
 /**
@@ -338,14 +344,9 @@ export const subscribeCurry =
  * @param {mqtt.MqttClient} mqttClient - The MQTT client instance
  * @returns {mqtt.MqttClient} The MQTT client instance
  */
-export const unsubscribe = (
-  topic: string,
-  options: mqtt.IClientSubscribeOptions,
-  mqttClient: mqtt.MqttClient
-) => {
+export const unsubscribe = (topic: string, client: mqtt.MqttClient): void => {
   log.info("unsubscribed from " + topic);
-  mqttClient.unsubscribe(topic, options);
-  return mqttClient;
+  client.unsubscribe(topic);
 };
 
 /** Type for functions that modify a given type */
@@ -371,7 +372,7 @@ const getDeathPayload = (bdSeq: number): UPayload => ({
  * Publishes the host online message
  * @param {SparkplugHost} host - The Sparkplug host instance
  */
-export const publishHostOnline = (host: SparkplugHost) => {
+export const publishHostOnline = (host: SparkplugHost): void => {
   const topic = `STATE/${host.primaryHostId}`;
   const payload = "ONLINE";
   log.info("Publishing Primary Host Online.");
@@ -383,7 +384,9 @@ export const publishHostOnline = (host: SparkplugHost) => {
  * @param {ISparkplugHostOptions} config - Host configuration options
  * @returns {mqtt.MqttClient} MQTT client instance
  */
-export const createHostMqttClient = (config: ISparkplugHostOptions) => {
+export const createHostMqttClient = (
+  config: ISparkplugHostOptions
+): mqtt.MqttClient => {
   const { serverUrl, clientId, keepalive, username, password, primaryHostId } =
     config;
   const mqttOptions: mqtt.IClientOptions = {
@@ -411,7 +414,10 @@ export const createHostMqttClient = (config: ISparkplugHostOptions) => {
  * @param {number} [bdSeq=0] - Initial birth/death sequence number
  * @returns {mqtt.MqttClient} MQTT client instance
  */
-export const createMqttClient = (config: ISparkplugEdgeOptions, bdSeq = 0) => {
+export const createMqttClient = (
+  config: ISparkplugEdgeOptions,
+  bdSeq = 0
+): mqtt.MqttClient => {
   const {
     serverUrl,
     clientId,
@@ -445,7 +451,7 @@ export const createMqttClient = (config: ISparkplugEdgeOptions, bdSeq = 0) => {
  * Destroys the MQTT client
  * @param {mqtt.MqttClient | null} client - The MQTT client to destroy
  */
-export const destroyMqttClient = (client: mqtt.MqttClient | null) => {
+export const destroyMqttClient = (client: mqtt.MqttClient | null): void => {
   if (client) client.end();
 };
 
@@ -578,7 +584,7 @@ export const handleMessage = (
   message: Buffer,
   emitter: EventEmitter,
   mqttConfig: ISparkplugEdgeOptions | ISparkplugHostOptions
-) => {
+): void => {
   const spbTopic = parseSpbTopic(topic);
   const isEdgeConfig = (
     config: ISparkplugEdgeOptions | ISparkplugHostOptions
