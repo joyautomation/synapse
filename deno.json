@@ -29,5 +29,12 @@
     "pako": "npm:pako@^2.1.0",
     "sparkplug-payload": "npm:sparkplug-payload@^1.0.3"
   },
-  "nodeModulesDir": "auto"
+  "nodeModulesDir": "auto",
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-slow-types"
+      ]
+    }
+  }
 }

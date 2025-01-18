@@ -44,7 +44,10 @@ export const _internals = {
 const version: string = "spBv1.0";
 
 /** Sparkplug B payload encoder/decoder instance */
-const spb: ReturnType<typeof sparkplug.get> = sparkplug.get(version)!;
+const spb: {
+  encodePayload: (object: UPayload) => Uint8Array;
+  decodePayload: (proto: Uint8Array) => UPayload;
+} = sparkplug.get(version)!;
 
 export const encodePayload = spb.encodePayload;
 export const decodePayload = spb.decodePayload;
