@@ -1,7 +1,6 @@
 import EventEmitter from "node:events";
 import type {
   SparkplugCreateHostInput,
-  SparkplugDevice,
   SparkplugDeviceFlat,
   SparkplugGroupFlat,
   SparkplugHost,
@@ -9,7 +8,7 @@ import type {
   SparkplugNodeFlat,
   SparkplugTopic,
 } from "../types.ts";
-import { curry, pipe } from "ramda";
+import { pipe } from "@joyautomation/dark-matter";
 import { logs } from "../log.ts";
 const { main: log } = logs;
 import {
@@ -44,7 +43,7 @@ export const onConnect = (host: SparkplugHost) => {
     setHostStateConnected(host);
     publishHostOnline(host);
     log.info(
-      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`,
+      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`
     );
     host.events.emit("connected");
   };
@@ -86,29 +85,30 @@ export const onError = (host: SparkplugHost) => {
 const setupHostEvents = (host: SparkplugHost) => {
   if (host.mqtt) {
     pipe(
+      host.mqtt,
       onCurry<mqtt.MqttClient, "connect", mqtt.OnConnectCallback>(
         "connect",
-        onConnect(host),
+        onConnect(host)
       ),
       onCurry<mqtt.MqttClient, "message", mqtt.OnMessageCallback>(
         "message",
-        onMessage(host),
+        onMessage(host)
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
-        onDisconnect(host),
+        onDisconnect(host)
       ),
       onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
         "close",
-        onClose(host),
+        onClose(host)
       ),
       onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
         "error",
-        onError(host),
+        onError(host)
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
-      subscribeCurry(`${host.version}/#`, { qos: 0 }),
-    )(host.mqtt);
+      subscribeCurry(`${host.version}/#`, { qos: 0 })
+    );
     createHostMessageEvents(host);
   }
 };
@@ -170,8 +170,9 @@ const resetHostState = (node: SparkplugHost) => {
  * @param {Partial<SparkplugHost["states"]>} state - The state to set.
  * @returns {(host: SparkplugHost) => SparkplugHost} A function that sets the specified state.
  */
-const deriveSetHostState = (state: Partial<SparkplugHost["states"]>) =>
-  pipe(resetHostState, setState(state));
+const deriveSetHostState =
+  (state: Partial<SparkplugHost["states"]>) => (host: SparkplugHost) =>
+    pipe(host, resetHostState, setState(state));
 
 /**
  * Sets the host state to connected.
@@ -193,44 +194,51 @@ const setHostStateDisconnected = deriveSetHostState({ disconnected: true });
  * @param {SparkplugHost} host - The SparkplugHost instance.
  * @returns {SparkplugHost} The updated SparkplugHost instance.
  */
-const changeHostState = curry(
+const changeHostState = (
+  inRequiredState: (host: SparkplugHost) => boolean,
+  notInRequiredStateLogText: string,
+  transition: HostTransition,
+  host: SparkplugHost
+) => {
+  if (!inRequiredState(host)) {
+    log.info(
+      `${notInRequiredStateLogText}, it is currently: ${getHostStateString(
+        host
+      )}`
+    );
+  } else {
+    log.info(
+      `Host ${host.id} transitioning from ${getHostStateString(
+        host
+      )} to ${transition}`
+    );
+    hostTransitions[transition](host);
+  }
+  return host;
+};
+const changeHostStateCurry =
   (
     inRequiredState: (host: SparkplugHost) => boolean,
     notInRequiredStateLogText: string,
-    transition: HostTransition,
-    host: SparkplugHost,
-  ) => {
-    if (!inRequiredState(host)) {
-      log.info(
-        `${notInRequiredStateLogText}, it is currently: ${
-          getHostStateString(
-            host,
-          )
-        }`,
-      );
-    } else {
-      log.info(
-        `Host ${host.id} transitioning from ${
-          getHostStateString(
-            host,
-          )
-        } to ${transition}`,
-      );
-      hostTransitions[transition](host);
-    }
-    return host;
-  },
-);
+    transition: HostTransition
+  ) =>
+  (host: SparkplugHost) =>
+    changeHostState(
+      inRequiredState,
+      notInRequiredStateLogText,
+      transition,
+      host
+    );
 
 /**
  * Connects a SparkplugHost if it's currently disconnected.
  * @param {SparkplugHost} host - The SparkplugHost instance to connect.
  * @returns {SparkplugHost} The updated SparkplugHost instance.
  */
-const connectHost = changeHostState(
+const connectHost = changeHostStateCurry(
   (host: SparkplugHost) => host.states.disconnected,
   "Host needs to be disconnected to be connected",
-  "connect",
+  "connect"
 );
 
 /**
@@ -239,10 +247,10 @@ const connectHost = changeHostState(
  * @returns {SparkplugHost} The updated SparkplugHost instance.
  */
 export const disconnectHost: (host: SparkplugHost) => SparkplugHost =
-  changeHostState(
+  changeHostStateCurry(
     (host: SparkplugHost) => host.states.connected,
     "Host needs to be connected to be disconnected",
-    "disconnect",
+    "disconnect"
   );
 
 /**
@@ -309,7 +317,7 @@ const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
  * @returns {SparkplugGroupFlat[]} An array of flattened group objects, each containing flattened nodes, devices, and metrics.
  */
 export const flattenHostGroups = (
-  host: SparkplugHost,
+  host: SparkplugHost
 ): SparkplugGroupFlat[] => {
   return flatten(host.groups).map((group) => ({
     ...group,
@@ -398,7 +406,7 @@ const createHostDevice = ({ host, topic, message }: DataEventConditionArgs) => {
  */
 const publishNodeRebirthRequest = (
   host: SparkplugHost,
-  topic: SparkplugTopic,
+  topic: SparkplugTopic
 ) => {
   if (host.mqtt) {
     publishNodeCommand(
@@ -409,7 +417,7 @@ const publishNodeRebirthRequest = (
       topic.groupId,
       topic.edgeNode,
       getMqttConfigFromSparkplug(host),
-      host.mqtt,
+      host.mqtt
     );
   }
 };
@@ -472,7 +480,7 @@ export const createHostMessageEvents = (host: SparkplugHost) => {
   ["nbirth", "dbirth", "ndata", "ddata"].forEach((event) => {
     host.events.on(
       event,
-      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata"),
+      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata")
     );
   });
 };

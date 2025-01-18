@@ -3,10 +3,10 @@ import { expect } from "@std/expect";
 import {
   assertSpyCall,
   assertSpyCalls,
-  Spy,
+  type Spy,
   spy,
   stub,
-} from "jsr:@std/testing/mock";
+} from "@std/testing/mock";
 import {
   createMqttClient,
   createPayload,
@@ -50,8 +50,6 @@ describe("MQTT", () => {
     expect(client).toBeDefined();
   });
   it("handles messages correctly", () => {
-    using debugStub = stub(console, "debug");
-    using infoStub = stub(console, "info");
     const emitter = new EventEmitter();
 
     // Test NCMD message

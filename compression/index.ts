@@ -1,5 +1,5 @@
 import Long from "long";
-import { pipe } from "ramda";
+import { pipe } from "@joyautomation/dark-matter";
 import { deflate, gzip, inflate, ungzip } from "pako";
 import type { CompressPayloadInput, PayloadOptions } from "./types.ts";
 import {
@@ -10,8 +10,8 @@ import {
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import { logs } from "../log.ts";
 const { main: log } = logs;
-import { cond } from "../utils.ts";
-import type { Buffer } from "node:buffer";
+import { cond } from "@joyautomation/dark-matter";
+import { isBuffer } from "../utils.ts";
 
 export const compressed = "SPBV1.0_COMPRESSED";
 
@@ -26,10 +26,6 @@ const compressionAlgorithms = {
   },
 };
 
-const something: Long = Long.fromNumber(1);
-
-something.toNumber();
-
 /**
  * Updates the payload by converting any Long values in the metrics and the timestamp to numbers.
  *
@@ -40,13 +36,12 @@ const convertLongs = (payload: UPayload) => ({
   ...payload,
   metrics: payload.metrics?.map((m: UMetric) => ({
     ...m,
-    //@ts-ignore
     value: m.value instanceof Long ? m.value.toNumber() : m.value,
   })),
-  timestamp: payload.timestamp instanceof Long
-    //@ts-ignore
-    ? payload.timestamp?.toNumber()
-    : payload.timestamp,
+  timestamp:
+    payload.timestamp instanceof Long
+      ? payload.timestamp?.toNumber()
+      : payload.timestamp,
 });
 
 /**
@@ -56,23 +51,24 @@ const convertLongs = (payload: UPayload) => ({
  * @return {any[]} Array of objects containing condition and action functions.
  */
 const generateCompressionAlgorithmConditions = (
-  algorithms: typeof compressionAlgorithms,
-): any[] =>
+  algorithms: typeof compressionAlgorithms
+) =>
   Object.keys(algorithms).map((algorithm) => ({
     condition: ({ options }: CompressPayloadInput) =>
       options != null && options.algorithm === algorithm,
-    action: ({ options, payload }: CompressPayloadInput) => ({
-      body: algorithms[algorithm as keyof typeof algorithms].compress(
-        encodePayload(payload),
-      ),
-      metrics: [
-        {
-          name: "algorithm",
-          value: options?.algorithm?.toUpperCase(),
-          type: "String",
-        },
-      ],
-    } as UPayload),
+    action: ({ options, payload }: CompressPayloadInput) =>
+      ({
+        body: algorithms[algorithm as keyof typeof algorithms].compress(
+          encodePayload(payload)
+        ),
+        metrics: [
+          {
+            name: "algorithm",
+            value: options?.algorithm?.toUpperCase(),
+            type: "String",
+          },
+        ],
+      } as UPayload),
   }));
 
 /**
@@ -83,13 +79,13 @@ const generateCompressionAlgorithmConditions = (
  */
 export const compressPayload = (
   options: PayloadOptions | undefined,
-  payload: UPayload,
+  payload: UPayload
 ) =>
   cond<CompressPayloadInput, UPayload>({ options, payload }, [
     {
       condition: ({ options }: CompressPayloadInput) =>
         options == null || options.compress !== true,
-      action: ({ options, payload }: CompressPayloadInput) => payload,
+      action: ({ payload }: CompressPayloadInput) => payload,
     },
     ...generateCompressionAlgorithmConditions(compressionAlgorithms),
     {
@@ -126,22 +122,33 @@ export const hasAlgorithm = (metrics: UMetric[] | null | undefined) =>
  * @return {any[]} Array of objects containing condition and action functions.
  */
 const generateDecompressionAlgorithmConditions = (
-  algorithms: typeof compressionAlgorithms,
-): any[] =>
+  algorithms: typeof compressionAlgorithms
+) =>
   Object.keys(algorithms).map((algorithm) => ({
-    condition: ({ metrics }: UPayload) =>
-      metrics
-        ?.find((m) => m.name === "algorithm")
-        ?.value?.toString()
-        .toUpperCase() === algorithm,
-    action: ({ body }: UPayload) =>
-      body != null
-        ? pipe(
-          algorithms[algorithm as keyof typeof algorithms].decompress,
-          decodePayload,
-          convertLongs,
-        )(body)
-        : body,
+    condition: (payload?: UPayload | Uint8Array) => {
+      return (
+        isBuffer(payload) ||
+        payload?.metrics
+          ?.find((m) => m.name === "algorithm")
+          ?.value?.toString()
+          .toUpperCase() === algorithm
+      );
+    },
+
+    action: (payload?: UPayload | Uint8Array) => {
+      if (!isBuffer(payload)) {
+        return payload?.body != null
+          ? pipe(
+              payload.body,
+              algorithms[algorithm as keyof typeof algorithms].decompress,
+              decodePayload,
+              convertLongs
+            )
+          : payload?.body;
+      } else {
+        return payload;
+      }
+    },
   }));
 
 /**
@@ -150,11 +157,12 @@ const generateDecompressionAlgorithmConditions = (
  * @returns {Uint8Array} The decompressed payload.
  * @throws {Error} If an unknown or unsupported algorithm is encountered.
  */
-export const decompressPayload = (payload: Buffer | UPayload): Uint8Array =>
+export const decompressPayload = (payload?: UPayload | Uint8Array) =>
   cond(payload, [
     {
-      condition: ({ metrics }: UPayload) => !hasAlgorithm(metrics),
-      action: (payload: UPayload) => payload,
+      condition: (payload): boolean =>
+        isBuffer(payload) || !hasAlgorithm(payload?.metrics),
+      action: (payload) => payload,
     },
     ...generateDecompressionAlgorithmConditions(compressionAlgorithms),
     {
