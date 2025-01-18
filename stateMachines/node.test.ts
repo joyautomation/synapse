@@ -121,6 +121,7 @@ describe("Node", () => {
       returnCode: 0,
     };
     node.mqtt?.emit("connect", packet); //simulate receiving a connect even from MQTT
+    await new Promise((resolve) => setTimeout(resolve, 100));
     assertSpyCalls(mockOnConnect, 1);
     expect(node.states).toEqual({
       connected: {
@@ -135,9 +136,7 @@ describe("Node", () => {
       const calls = (node.mqtt?.publish as Spy).calls.length;
       await nodeTransitions.birth(node);
       expect(node.mqtt?.publish).toBeDefined();
-      if (node.mqtt?.publish) {
-        assertSpyCalls(node.mqtt.publish as Spy, calls + 1);
-      }
+      assertSpyCalls(node.mqtt?.publish as Spy, calls + 1);
     });
     it("publishes nothing if the mqtt client doesn't exist.", () => {
       nodeTransitions.birth({} as SparkplugNode);

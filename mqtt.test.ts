@@ -20,6 +20,9 @@ import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import { Buffer } from "node:buffer";
 import { _internals } from "./mqtt.ts";
 
+stub(console, "debug");
+stub(console, "info");
+stub(console, "error");
 describe("MQTT", () => {
   const mockConfig: ISparkplugEdgeOptions = {
     serverUrl: "mqtt://test.mosquitto.org",

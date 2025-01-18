@@ -191,6 +191,7 @@ export const nodeTransitions = {
   },
   birth: async (node: SparkplugNode) => {
     if (node.mqtt) {
+      console.error("==================================================birth");
       publishNodeBirth(
         node.bdseq,
         node.seq,
