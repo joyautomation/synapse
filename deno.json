@@ -27,7 +27,7 @@
     "long": "npm:long@^5.2.3",
     "mqtt": "npm:mqtt@^5.10.1",
     "pako": "npm:pako@^2.1.0",
-    "sparkplug-payload": "npm:sparkplug-payload@^1.0.3"
+    "sparkplug-payload": "npm:sparkplug-payload@1.0.3"
   },
   "nodeModulesDir": "auto"
 }

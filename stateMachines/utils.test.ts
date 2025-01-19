@@ -2,8 +2,8 @@ import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { getMqttConfigFromSparkplug } from "./utils.ts";
 import type { SparkplugHost, SparkplugNode } from "../types.ts";
-
 import type { ISparkplugEdgeOptions, ISparkplugHostOptions } from "../types.ts";
+import { EventEmitter } from "node:events";
 
 const commonInput = {
   clientId: "test1",
@@ -31,7 +31,18 @@ describe("getMqttConfigFromSparkplug", () => {
       ...commonInput,
       groupId: "group1",
       id: "edge1",
-    } as SparkplugNode;
+      bdseq: 0,
+      seq: 0,
+      mqtt: null,
+      states: {
+        connected: { born: false, dead: false },
+        disconnected: false,
+      },
+      events: new EventEmitter(),
+      metrics: {},
+      devices: {},
+      scanRates: {},
+    };
 
     const result = getMqttConfigFromSparkplug(nodeInput);
 
@@ -46,9 +57,19 @@ describe("getMqttConfigFromSparkplug", () => {
 
   it("should return ISparkplugHostOptions for SparkplugHost input", () => {
     const hostInput: SparkplugHost = {
+      id: "host1",
       ...commonInput,
       primaryHostId: "primary1",
-    } as SparkplugHost;
+      bdseq: 0,
+      seq: 0,
+      mqtt: null,
+      states: {
+        connected: false,
+        disconnected: false,
+      },
+      events: new EventEmitter(),
+      groups: {},
+    };
 
     const result = getMqttConfigFromSparkplug(hostInput);
 
