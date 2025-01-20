@@ -55,8 +55,7 @@
     "npm:pako@2.1.0": "2.1.0",
     "npm:pako@^2.1.0": "2.1.0",
     "npm:sinon@*": "18.0.0",
-    "npm:sparkplug-payload@1.0.3": "1.0.3",
-    "npm:sparkplug-payload@^1.0.3": "1.0.3"
+    "npm:sparkplug-payload@1.0.3": "1.0.3"
   },
   "jsr": {
     "@david/code-block-writer@13.0.3": {
@@ -627,7 +626,7 @@
       "npm:long@^5.2.3",
       "npm:mqtt@^5.10.1",
       "npm:pako@^2.1.0",
-      "npm:sparkplug-payload@^1.0.3"
+      "npm:sparkplug-payload@1.0.3"
     ]
   }
 }
