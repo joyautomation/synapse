@@ -87,7 +87,7 @@ describe("MQTT", () => {
     handleMessage(stateTopic, stateMessage, emitter, mockConfig);
 
     assertSpyCall(stateSpy, 0, {
-      args: ["ONLINE"],
+      args: ["ONLINE", "testHost"],
     });
 
     // Test uncaught message

@@ -609,7 +609,8 @@ export const handleMessage = (
       action: ({ topic, message }) => {
         const state = Buffer.from(message).toString();
         log.info(`STATE message received for ${topic.groupId}, it is ${state}`);
-        emitter.emit("state", state);
+        const primaryHostId = topic.groupId;
+        emitter.emit("state", state, primaryHostId);
       },
     },
     ...handleCommands,
