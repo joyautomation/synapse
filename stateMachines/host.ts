@@ -292,10 +292,25 @@ const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
       publishNodeRebirthRequest(host, topic);
     }
     if (deviceId) {
-      if (!host.groups[groupId].nodes[edgeNode].devices[deviceId]) {
-        host.groups[groupId].nodes[edgeNode].devices[deviceId] = {
-          id: deviceId,
-          metrics: {},
+      if (!host.groups[groupId]?.nodes[edgeNode]?.devices[deviceId]) {
+        host.groups = {
+          ...host.groups,
+          [groupId]: {
+            ...host.groups[groupId],
+            nodes: {
+              ...host.groups[groupId]?.nodes,
+              [edgeNode]: {
+                ...host.groups[groupId]?.nodes?.[edgeNode],
+                devices: {
+                  ...host.groups[groupId]?.nodes?.[edgeNode]?.devices,
+                  [deviceId]: {
+                    id: deviceId,
+                    metrics: {},
+                  },
+                },
+              },
+            },
+          },
         };
       }
       if (metric.name) {
