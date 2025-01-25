@@ -250,6 +250,7 @@ const publishPayload =
       ) as Buffer,
       client
     );
+    sparkplug.events.emit(`publish-${command.toLowerCase()}`, topic, payload);
   };
 
 /**
