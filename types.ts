@@ -1,6 +1,9 @@
 import type { IClientOptions } from "mqtt";
 import type mqtt from "mqtt";
-import type { UMetric } from "sparkplug-payload/lib/sparkplugbpayload.js";
+import type {
+  UMetric,
+  UPropertyValue,
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
 import type { EventEmitter } from "node:events";
 import type { PayloadOptions as CompressionPayloadOptions } from "./compression/types.ts";
 
@@ -220,7 +223,7 @@ export interface SparkplugDeviceFlat {
   /** The device identifier. */
   id: string;
   /** The metrics associated with the Device. */
-  metrics: UMetric[];
+  metrics: SparkplugMetricFlat[];
 }
 
 /**
@@ -231,7 +234,7 @@ export interface SparkplugNodeFlat {
   /** The node identifier. */
   id: string;
   /** The metrics associated with the Node. */
-  metrics: SparkplugMetric[];
+  metrics: SparkplugMetricFlat[];
   /** The flattened devices associated with the Node. */
   devices: SparkplugDeviceFlat[];
 }
@@ -332,11 +335,45 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
   };
 }
 
-/** Type representing a parsed Sparkplug B topic */
+/**
+ * Interface representing a flattened property of a Sparkplug metric.
+ * Contains the property's identifier and its value.
+ * @interface SparkplugMetricPropertiesFlat
+ */
+export interface SparkplugMetricPropertiesFlat {
+  /** The unique identifier of the property */
+  id: string;
+  /** The value of the property */
+  value: UPropertyValue;
+}
+
+/**
+ * Interface representing a flattened Sparkplug metric.
+ * Extends SparkplugMetric but replaces the properties field with a flattened array.
+ * @interface SparkplugMetricFlat
+ * @extends {Omit<SparkplugMetric, "properties">}
+ */
+export interface SparkplugMetricFlat
+  extends Omit<SparkplugMetric, "properties"> {
+  /** Array of property values associated with the metric */
+  properties: UPropertyValue[];
+}
+
+/**
+ * Type representing a parsed Sparkplug B topic.
+ * Contains all components of a Sparkplug B MQTT topic string.
+ * Format: spBv1.0/<group_id>/<message_type>/<edge_node_id>[/<device_id>]
+ * @typedef {Object} SparkplugTopic
+ */
 export type SparkplugTopic = {
+  /** The version of the Sparkplug protocol (e.g., 'spBv1.0') */
   version: string;
+  /** The group identifier for the metric */
   groupId: string;
+  /** The type of command/message (e.g., 'NBIRTH', 'NCMD', 'NDATA') */
   commandType: string;
+  /** The identifier of the edge node */
   edgeNode: string;
+  /** The optional device identifier, if the topic relates to a specific device */
   deviceId?: string;
 };
