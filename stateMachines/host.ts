@@ -1,7 +1,6 @@
 import EventEmitter from "node:events";
 import type {
   SparkplugCreateHostInput,
-  SparkplugDeviceFlat,
   SparkplugGroupFlat,
   SparkplugHost,
   SparkplugMetric,
