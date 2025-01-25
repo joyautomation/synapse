@@ -213,20 +213,9 @@ export const publishNodeBirth = (
 
 /**
  * Function type for publishing Sparkplug B payloads (DBIRTH, DDEATH, DDATA, or NDATA)
- * @public
- * @param {SparkplugNode} sparkplug - The Sparkplug node instance
- * @param {UPayload} payload - The payload to publish
- * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration for the edge node
- * @param {mqtt.MqttClient} client - MQTT client instance
- * @param {string} [deviceId] - Optional device identifier (required for device-specific messages)
+ * @internal
  */
-export type PublishPayload = (
-  sparkplug: SparkplugNode,
-  payload: UPayload,
-  mqttConfig: ISparkplugEdgeOptions,
-  client: mqtt.MqttClient,
-  deviceId?: string
-) => void;
+export type PublishPayload = ReturnType<typeof publishPayload>;
 
 /**
  * Publishes a payload for a specific Sparkplug command
@@ -234,9 +223,7 @@ export type PublishPayload = (
  * @returns {Function} A function that publishes the payload for the specified command
  */
 const publishPayload =
-  (
-    command: "DBIRTH" | "DDEATH" | "DDATA" | "NDATA" | "NCMD" | "DCMD"
-  ): PublishPayload =>
+  (command: "DBIRTH" | "DDEATH" | "DDATA" | "NDATA" | "NCMD" | "DCMD") =>
   (
     sparkplug: SparkplugNode,
     payload: UPayload,
@@ -322,33 +309,13 @@ const createCommandPayload = (
 });
 
 /**
- * Function type for publishing Sparkplug B commands (NCMD or DCMD)
- * @public
- * @param {SparkplugHost} sparkplug - The Sparkplug host instance
- * @param {string} commandName - Name of the command to publish
- * @param {UMetric["type"]} type - Type of the metric value
- * @param {UMetric["value"]} value - Value of the metric
- * @param {string} groupId - Sparkplug group identifier
- * @param {string} edgeNode - Edge node identifier
- * @param {ISparkplugHostOptions} mqttConfig - MQTT configuration options
- * @param {mqtt.MqttClient} client - MQTT client instance
- * @param {string} [deviceId] - Optional device identifier (only for DCMD)
+ * Type representing a function that publishes Sparkplug B commands (NCMD or DCMD)
+ * @internal
  */
-export type PublishCommand = (
-  sparkplug: SparkplugHost,
-  commandName: string,
-  type: UMetric["type"],
-  value: UMetric["value"],
-  groupId: string,
-  edgeNode: string,
-  mqttConfig: ISparkplugHostOptions,
-  client: mqtt.MqttClient,
-  deviceId?: string
-) => void;
+export type PublishCommand = ReturnType<typeof publishCommand>;
 
 /**
  * Creates a function to publish Sparkplug B commands (NCMD or DCMD)
- * @public
  * @param {("NCMD" | "DCMD")} command - The type of command to publish (Node or Device)
  * @returns {Function} A function that publishes the specified command type with the following parameters:
  *   - sparkplug: SparkplugHost - The Sparkplug host instance
@@ -362,7 +329,7 @@ export type PublishCommand = (
  *   - deviceId?: string - Optional device identifier (only for DCMD)
  */
 const publishCommand =
-  (command: "NCMD" | "DCMD"): PublishCommand =>
+  (command: "NCMD" | "DCMD") =>
   (
     sparkplug: SparkplugHost,
     commandName: string,
