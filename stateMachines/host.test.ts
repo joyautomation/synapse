@@ -128,6 +128,7 @@ describe("The host state machine", () => {
                 id: "node1",
                 metrics: {
                   metric1: {
+                    properties: [],
                     id: "metric1",
                     name: "metric1",
                     type: "metric1",
@@ -139,6 +140,7 @@ describe("The host state machine", () => {
                     id: "device1",
                     metrics: {
                       metric2: {
+                        properties: [],
                         id: "metric2",
                         name: "metric2",
                         type: "metric2",
@@ -163,6 +165,7 @@ describe("The host state machine", () => {
               name: "node1",
               metrics: [
                 {
+                  properties: [],
                   id: "metric1",
                   name: "metric1",
                   type: "metric1",
@@ -175,6 +178,7 @@ describe("The host state machine", () => {
                   name: "device1",
                   metrics: [
                     {
+                      properties: [],
                       id: "metric2",
                       name: "metric2",
                       type: "metric2",
