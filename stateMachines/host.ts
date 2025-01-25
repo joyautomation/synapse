@@ -4,6 +4,8 @@ import type {
   SparkplugDeviceFlat,
   SparkplugGroupFlat,
   SparkplugHost,
+  SparkplugMetric,
+  SparkplugMetricFlat,
   SparkplugNode,
   SparkplugNodeFlat,
   SparkplugTopic,
@@ -326,9 +328,9 @@ export const flattenHostGroups = (
       ...node,
       devices: flatten(node.devices).map((device) => ({
         ...device,
-        metrics: flatten(device.metrics),
+        metrics: flattenMetrics(device.metrics),
       })),
-      metrics: flatten(node.metrics),
+      metrics: flattenMetrics(node.metrics),
     })),
   }));
 };
@@ -344,11 +346,21 @@ export const flattenNode = (node: SparkplugNode): SparkplugNodeFlat => {
     ...node,
     devices: flatten(node.devices).map((device) => ({
       ...device,
-      metrics: flatten(device.metrics),
-    })) as SparkplugDeviceFlat[],
-    metrics: flatten(node.metrics),
+      metrics: flattenMetrics(device.metrics),
+    })),
+    metrics: flattenMetrics(node.metrics),
   };
 };
+
+export const flattenMetric = (metric: SparkplugMetric): SparkplugMetricFlat => {
+  return {
+    ...metric,
+    properties: flatten(metric.properties || {}),
+  };
+};
+
+export const flattenMetrics = (metrics: Record<string, SparkplugMetric>) =>
+  flatten(metrics).map(flattenMetric);
 
 /**
  * Creates a new node in the host's group structure.

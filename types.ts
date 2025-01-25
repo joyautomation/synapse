@@ -1,6 +1,9 @@
 import type { IClientOptions } from "mqtt";
 import type mqtt from "mqtt";
-import type { UMetric } from "sparkplug-payload/lib/sparkplugbpayload.js";
+import type {
+  UMetric,
+  UPropertyValue,
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
 import type { EventEmitter } from "node:events";
 import type { PayloadOptions as CompressionPayloadOptions } from "./compression/types.ts";
 
@@ -220,7 +223,7 @@ export interface SparkplugDeviceFlat {
   /** The device identifier. */
   id: string;
   /** The metrics associated with the Device. */
-  metrics: UMetric[];
+  metrics: SparkplugMetricFlat[];
 }
 
 /**
@@ -231,7 +234,7 @@ export interface SparkplugNodeFlat {
   /** The node identifier. */
   id: string;
   /** The metrics associated with the Node. */
-  metrics: SparkplugMetric[];
+  metrics: SparkplugMetricFlat[];
   /** The flattened devices associated with the Node. */
   devices: SparkplugDeviceFlat[];
 }
@@ -330,6 +333,16 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
     timestamp: number;
     value: UMetric["value"];
   };
+}
+
+export interface SparkplugMetricPropertiesFlat {
+  id: string;
+  value: UPropertyValue;
+}
+
+export interface SparkplugMetricFlat
+  extends Omit<SparkplugMetric, "properties"> {
+  properties: UPropertyValue[];
 }
 
 /** Type representing a parsed Sparkplug B topic */
