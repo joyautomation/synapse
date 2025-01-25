@@ -2,7 +2,7 @@ import type { IClientOptions } from "mqtt";
 import type mqtt from "mqtt";
 import type { UMetric } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import type { EventEmitter } from "node:events";
-import type { PayloadOptions } from "./compression/types.ts";
+import type { PayloadOptions as CompressionPayloadOptions } from "./compression/types.ts";
 
 /**
  * Represents the type of Sparkplug client.
@@ -73,6 +73,9 @@ export interface ISparkplugHostOptions extends ISparkplugBaseOptions {
   primaryHostId: string;
 }
 
+/** @internal */
+export type PayloadOptions = CompressionPayloadOptions;
+
 /**
  * Interface for creating a base Sparkplug input.
  * @interface SparkplugCreateBaseInput
@@ -131,6 +134,10 @@ export interface SparkplugCreateNodeInput extends SparkplugCreateBaseInput {
  * @interface SparkplugNodeScanRates
  */
 export interface SparkplugNodeScanRates {
+  /**
+   * Maps scan rate intervals (in milliseconds) to their corresponding timer handles
+   * @type {ReturnType<typeof setInterval>}
+   */
   [key: number]: ReturnType<typeof setInterval>;
 }
 
@@ -308,6 +315,12 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
     maxTime?: number;
     value: number;
   };
+  /**
+   * The value of the metric. Can be one of:
+   * - A direct value matching UMetric["value"] type
+   * - A synchronous function that returns a UMetric["value"]
+   * - An asynchronous function that returns a Promise resolving to UMetric["value"]
+   */
   value:
     | UMetric["value"]
     | (() => UMetric["value"])
