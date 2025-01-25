@@ -337,14 +337,18 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
 
 /**
  * Interface representing a flattened property of a Sparkplug metric.
- * Contains the property's identifier and its value.
- * @interface SparkplugMetricPropertiesFlat
+ * Extends UPropertyValue and adds identifier and optional name fields.
+ * @interface SparkplugMetricPropertyFlat
+ * @extends {UPropertyValue}
  */
-export interface SparkplugMetricPropertiesFlat {
+export interface SparkplugMetricPropertyFlat extends UPropertyValue {
   /** The unique identifier of the property */
   id: string;
-  /** The value of the property */
-  value: UPropertyValue;
+  /**
+   * Optional display name or label for the property.
+   * This can be used to provide a human-readable name for the property.
+   */
+  name?: string;
 }
 
 /**
@@ -356,7 +360,7 @@ export interface SparkplugMetricPropertiesFlat {
 export interface SparkplugMetricFlat
   extends Omit<SparkplugMetric, "properties"> {
   /** Array of property values associated with the metric */
-  properties: UPropertyValue[];
+  properties: SparkplugMetricPropertyFlat[];
 }
 
 /**
