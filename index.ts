@@ -19,6 +19,18 @@ export { createNode } from "./stateMachines/node.ts";
 export { disconnectNode } from "./stateMachines/node.ts";
 
 /**
+ * Flattens a SparkplugNode object into a simpler structure.
+ *
+ * This function converts the nested hierarchical structure of a SparkplugNode into a flat
+ * representation where devices and metrics are stored in arrays. This is particularly useful
+ * for serialization or when working with GraphQL schemas.
+ *
+ * @param {SparkplugNode} node - The SparkplugNode object to flatten
+ * @returns {SparkplugNodeFlat} A flattened representation of the node with devices and metrics in arrays
+ */
+export { flattenNode } from "./stateMachines/host.ts";
+
+/**
  * Creates a new host.
  * @function
  * @name createHost
