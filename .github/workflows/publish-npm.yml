@@ -1,9 +1,11 @@
-name: Run Tests
+name: Publish
 on:
-  pull_request:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
-  test:
+  publish:
     runs-on: ubuntu-latest
 
     permissions:
@@ -19,4 +21,7 @@ jobs:
           deno-version: v2.1
 
       - name: Run tests
-        run: deno test --allow-env
+        run: deno task test
+
+      - name: Publish package
+        run: deno publish
