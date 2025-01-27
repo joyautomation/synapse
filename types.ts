@@ -1,8 +1,11 @@
 import type { IClientOptions } from "mqtt";
 import type mqtt from "mqtt";
-import type { UMetric } from "sparkplug-payload/lib/sparkplugbpayload.js";
+import type {
+  UMetric,
+  UPropertyValue,
+} from "sparkplug-payload/lib/sparkplugbpayload.js";
 import type { EventEmitter } from "node:events";
-import type { PayloadOptions } from "./compression/types.ts";
+import type { PayloadOptions as CompressionPayloadOptions } from "./compression/types.ts";
 
 /**
  * Represents the type of Sparkplug client.
@@ -73,6 +76,9 @@ export interface ISparkplugHostOptions extends ISparkplugBaseOptions {
   primaryHostId: string;
 }
 
+/** @internal */
+export type PayloadOptions = CompressionPayloadOptions;
+
 /**
  * Interface for creating a base Sparkplug input.
  * @interface SparkplugCreateBaseInput
@@ -131,6 +137,10 @@ export interface SparkplugCreateNodeInput extends SparkplugCreateBaseInput {
  * @interface SparkplugNodeScanRates
  */
 export interface SparkplugNodeScanRates {
+  /**
+   * Maps scan rate intervals (in milliseconds) to their corresponding timer handles
+   * @type {ReturnType<typeof setInterval>}
+   */
   [key: number]: ReturnType<typeof setInterval>;
 }
 
@@ -213,7 +223,7 @@ export interface SparkplugDeviceFlat {
   /** The device identifier. */
   id: string;
   /** The metrics associated with the Device. */
-  metrics: UMetric[];
+  metrics: SparkplugMetricFlat[];
 }
 
 /**
@@ -224,7 +234,7 @@ export interface SparkplugNodeFlat {
   /** The node identifier. */
   id: string;
   /** The metrics associated with the Node. */
-  metrics: SparkplugMetric[];
+  metrics: SparkplugMetricFlat[];
   /** The flattened devices associated with the Node. */
   devices: SparkplugDeviceFlat[];
 }
@@ -308,6 +318,12 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
     maxTime?: number;
     value: number;
   };
+  /**
+   * The value of the metric. Can be one of:
+   * - A direct value matching UMetric["value"] type
+   * - A synchronous function that returns a UMetric["value"]
+   * - An asynchronous function that returns a Promise resolving to UMetric["value"]
+   */
   value:
     | UMetric["value"]
     | (() => UMetric["value"])
@@ -319,11 +335,49 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
   };
 }
 
-/** Type representing a parsed Sparkplug B topic */
+/**
+ * Interface representing a flattened property of a Sparkplug metric.
+ * Extends UPropertyValue and adds identifier and optional name fields.
+ * @interface SparkplugMetricPropertyFlat
+ * @extends {UPropertyValue}
+ */
+export interface SparkplugMetricPropertyFlat extends UPropertyValue {
+  /** The unique identifier of the property */
+  id: string;
+  /**
+   * Optional display name or label for the property.
+   * This can be used to provide a human-readable name for the property.
+   */
+  name?: string;
+}
+
+/**
+ * Interface representing a flattened Sparkplug metric.
+ * Extends SparkplugMetric but replaces the properties field with a flattened array.
+ * @interface SparkplugMetricFlat
+ * @extends {Omit<SparkplugMetric, "properties">}
+ */
+export interface SparkplugMetricFlat
+  extends Omit<SparkplugMetric, "properties"> {
+  /** Array of property values associated with the metric */
+  properties: SparkplugMetricPropertyFlat[];
+}
+
+/**
+ * Type representing a parsed Sparkplug B topic.
+ * Contains all components of a Sparkplug B MQTT topic string.
+ * Format: spBv1.0/<group_id>/<message_type>/<edge_node_id>[/<device_id>]
+ * @typedef {Object} SparkplugTopic
+ */
 export type SparkplugTopic = {
+  /** The version of the Sparkplug protocol (e.g., 'spBv1.0') */
   version: string;
+  /** The group identifier for the metric */
   groupId: string;
+  /** The type of command/message (e.g., 'NBIRTH', 'NCMD', 'NDATA') */
   commandType: string;
+  /** The identifier of the edge node */
   edgeNode: string;
+  /** The optional device identifier, if the topic relates to a specific device */
   deviceId?: string;
 };

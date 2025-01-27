@@ -499,6 +499,9 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
     );
     return true;
   }
+  logs.rbe.debug(
+    `Metric ${metric.name} does not need to be published. ${timeSinceLastPublish} < ${metric.deadband?.maxTime}, ${metric.value} vs. ${metric.lastPublished?.value}`
+  );
   return false;
 };
 

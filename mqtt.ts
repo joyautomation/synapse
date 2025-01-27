@@ -36,6 +36,10 @@ export function mqttConnect(
   return mqtt.connect(url, options);
 }
 
+/**
+ * Internal utilities exposed for testing purposes
+ * @internal
+ */
 export const _internals = {
   mqttConnect,
 };
@@ -49,8 +53,21 @@ const spb: {
   decodePayload: (proto: Uint8Array) => UPayload;
 } = sparkplug.get(version)!;
 
-export const encodePayload = spb.encodePayload;
-export const decodePayload = spb.decodePayload;
+/**
+ * Encodes a Sparkplug B payload object into a Uint8Array
+ * @param {UPayload} payload - The Sparkplug B payload object to encode
+ * @returns {Uint8Array} The encoded payload as a Uint8Array
+ */
+export const encodePayload: (payload: UPayload) => Uint8Array =
+  spb.encodePayload;
+
+/**
+ * Decodes a Sparkplug B payload from a Uint8Array into a payload object
+ * @param {Uint8Array} buffer - The Uint8Array containing the encoded Sparkplug B payload
+ * @returns {UPayload} The decoded Sparkplug B payload object
+ */
+export const decodePayload: (buffer: Uint8Array) => UPayload =
+  spb.decodePayload;
 
 /**
  * Converts a Uint8Array to a Buffer
@@ -195,6 +212,12 @@ export const publishNodeBirth = (
 };
 
 /**
+ * Function type for publishing Sparkplug B payloads (DBIRTH, DDEATH, DDATA, or NDATA)
+ * @internal
+ */
+export type PublishPayload = ReturnType<typeof publishPayload>;
+
+/**
  * Publishes a payload for a specific Sparkplug command
  * @param {string} command - The Sparkplug command type
  * @returns {Function} A function that publishes the payload for the specified command
@@ -227,13 +250,46 @@ const publishPayload =
       ) as Buffer,
       client
     );
+    sparkplug.events.emit(`publish-${command.toLowerCase()}`, topic, payload);
   };
 
-type PublishPayload = ReturnType<typeof publishPayload>;
-
-export const publishDeviceDeath: PublishPayload = publishPayload("DDEATH");
+/**
+ * Publishes a device birth message
+ * @param {SparkplugNode} sparkplug - The Sparkplug node instance
+ * @param {UPayload} payload - The payload to publish
+ * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ * @param {string} [deviceId] - Optional device identifier
+ */
 export const publishDeviceBirth: PublishPayload = publishPayload("DBIRTH");
+
+/**
+ * Publishes a device death (DDEATH) message to a Sparkplug B MQTT topic
+ * @param {SparkplugNode} sparkplug - The Sparkplug node instance
+ * @param {UPayload} payload - The payload to publish
+ * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ * @param {string} [deviceId] - Optional device identifier
+ */
+export const publishDeviceDeath: PublishPayload = publishPayload("DDEATH");
+
+/**
+ * Publishes device data (DDATA) message to a Sparkplug B MQTT topic
+ * @param {SparkplugNode} sparkplug - The Sparkplug node instance
+ * @param {UPayload} payload - The payload containing device metrics
+ * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ * @param {string} [deviceId] - Optional device identifier
+ */
 export const publishDeviceData: PublishPayload = publishPayload("DDATA");
+
+/**
+ * Publishes node data (NDATA) message to a Sparkplug B MQTT topic
+ * @param {SparkplugNode} sparkplug - The Sparkplug node instance
+ * @param {UPayload} payload - The payload containing node metrics
+ * @param {ISparkplugEdgeOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ */
 export const publishNodeData: PublishPayload = publishPayload("NDATA");
 
 const createCommandPayload = (
@@ -253,6 +309,26 @@ const createCommandPayload = (
   ],
 });
 
+/**
+ * Type representing a function that publishes Sparkplug B commands (NCMD or DCMD)
+ * @internal
+ */
+export type PublishCommand = ReturnType<typeof publishCommand>;
+
+/**
+ * Creates a function to publish Sparkplug B commands (NCMD or DCMD)
+ * @param {("NCMD" | "DCMD")} command - The type of command to publish (Node or Device)
+ * @returns {Function} A function that publishes the specified command type with the following parameters:
+ *   - sparkplug: SparkplugHost - The Sparkplug host instance
+ *   - commandName: string - Name of the command to publish
+ *   - type: UMetric["type"] - Type of the metric value
+ *   - value: UMetric["value"] - Value of the metric
+ *   - groupId: string - Sparkplug group identifier
+ *   - edgeNode: string - Edge node identifier
+ *   - mqttConfig: ISparkplugHostOptions - MQTT configuration options
+ *   - client: mqtt.MqttClient - MQTT client instance
+ *   - deviceId?: string - Optional device identifier (only for DCMD)
+ */
 const publishCommand =
   (command: "NCMD" | "DCMD") =>
   (
@@ -283,12 +359,34 @@ const publishCommand =
       ) as Buffer,
       client
     );
+    sparkplug.events.emit(`publish-${command.toLowerCase()}`, topic, payload);
   };
 
-export const publishNodeCommand: ReturnType<typeof publishCommand> =
-  publishCommand("NCMD");
-export const publishDeviceCommand: ReturnType<typeof publishCommand> =
-  publishCommand("DCMD");
+/**
+ * Publishes a node command (NCMD) message to a Sparkplug B MQTT topic
+ * @param {SparkplugHost} sparkplug - The Sparkplug host instance
+ * @param {string} commandName - Name of the command to publish
+ * @param {UMetric["type"]} type - Type of the metric value
+ * @param {UMetric["value"]} value - Value of the metric
+ * @param {string} groupId - Sparkplug group identifier
+ * @param {string} edgeNode - Edge node identifier
+ * @param {ISparkplugHostOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ */
+export const publishNodeCommand: PublishCommand = publishCommand("NCMD");
+/**
+ * Publishes a device command (DCMD) message to a Sparkplug B MQTT topic
+ * @param {SparkplugHost} sparkplug - The Sparkplug host instance
+ * @param {string} commandName - Name of the command to publish
+ * @param {UMetric["type"]} type - Type of the metric value
+ * @param {UMetric["value"]} value - Value of the metric
+ * @param {string} groupId - Sparkplug group identifier
+ * @param {string} edgeNode - Edge node identifier
+ * @param {ISparkplugHostOptions} mqttConfig - MQTT configuration options
+ * @param {mqtt.MqttClient} client - MQTT client instance
+ * @param {string} [deviceId] - Optional device identifier
+ */
+export const publishDeviceCommand: PublishCommand = publishCommand("DCMD");
 
 /**
  * Publishes a message to an MQTT topic
