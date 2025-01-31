@@ -386,16 +386,24 @@ export const flattenMetrics = (metrics: Record<string, SparkplugMetric>) =>
  */
 const createHostNode = ({ host, topic, message }: DataEventConditionArgs) => {
   const { groupId, edgeNode } = topic;
-  host.groups[groupId] = {
-    id: groupId,
-    nodes: {
-      [edgeNode]: {
-        id: edgeNode,
-        metrics: unflatten(message.metrics),
-        devices: {},
+  if (!host.groups[groupId]) {
+    host.groups[groupId] = {
+      id: groupId,
+      nodes: {
+        [edgeNode]: {
+          id: edgeNode,
+          metrics: unflatten(message.metrics),
+          devices: {},
+        },
       },
-    },
-  };
+    };
+  } else {
+    host.groups[groupId].nodes[edgeNode] = {
+      id: edgeNode,
+      metrics: unflatten(message.metrics),
+      devices: {},
+    };
+  }
   updateHostMetric({ event: "nbirth", host, topic, message });
 };
 
