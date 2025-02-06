@@ -68,7 +68,7 @@ export { flattenHostGroups } from "./stateMachines/host.ts";
 /**
  * Disables logging.
  * @function
- * @name disableLog
+ * @name disableLogv
  * @memberof module:log
  */
 
