@@ -186,6 +186,7 @@ export const nodeTransitions = {
     return setupNodeEvents(node);
   },
   disconnect: (node: SparkplugNode) => {
+    killNode(node);
     destroyMqttClient(node.mqtt);
     return setNodeStateDisconnected(node);
   },
