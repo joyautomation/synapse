@@ -44,12 +44,6 @@ export { createHost } from "./stateMachines/host.ts";
  * @name disconnectHost
  * @memberof module:stateMachines
  */
-/**
- * Disconnects a host.
- * @function
- * @name disconnectHost
- * @memberof module:stateMachines
- */
 export { disconnectHost } from "./stateMachines/host.ts";
 
 /**
