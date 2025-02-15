@@ -715,11 +715,19 @@ export const handleMessage = (
     {
       condition: () => true,
       action: ({ topic, message }) => {
-        const decompressed = decompressPayload(message);
-        if (isBuffer(decompressed)) {
-          const decoded = decodePayload(decompressed);
-          log.debug(`Uncaught message received on topic ${topic}.`);
-          emitter.emit("message", topic, decoded);
+        try {
+          const decompressed = decompressPayload(message);
+          if (isBuffer(decompressed)) {
+            const decoded = decodePayload(decompressed);
+            log.debug(`Uncaught message received on topic ${topic}.`);
+            emitter.emit("message", topic, decoded);
+          }
+        } catch (_error) {
+          const payload = Buffer.from(message).toString();
+          log.info(
+            `Uncaught non-decompressable, undecodable message received for ${topic} with payload ${payload}`
+          );
+          emitter.emit("message", topic, payload);
         }
       },
     },
