@@ -11,6 +11,7 @@ const config: SparkplugCreateHostInput = {
   clientId: `test-${nanoid(7)}`,
   version: "spBv1.0",
   primaryHostId: "testHost",
+  sharedSubscriptionGroup: "testGroup",
 };
 
 await createHost(config);

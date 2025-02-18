@@ -85,6 +85,10 @@ export const onError = (host: SparkplugHost) => {
  */
 const setupHostEvents = (host: SparkplugHost) => {
   if (host.mqtt) {
+    const prefix = host.sharedSubscriptionGroup
+      ? `$shared/${host.sharedSubscriptionGroup}/`
+      : "";
+    console.log(`Subscribing to ${prefix}STATE/#`);
     pipe(
       host.mqtt,
       onCurry<mqtt.MqttClient, "connect", mqtt.OnConnectCallback>(
@@ -107,8 +111,8 @@ const setupHostEvents = (host: SparkplugHost) => {
         "error",
         onError(host)
       ),
-      subscribeCurry("STATE/#", { qos: 1 }),
-      subscribeCurry(`${host.version}/#`, { qos: 0 })
+      subscribeCurry(`${prefix}STATE/#`, { qos: 1 }),
+      subscribeCurry(`${prefix}${host.version}/#`, { qos: 0 })
     );
     createHostMessageEvents(host);
   }

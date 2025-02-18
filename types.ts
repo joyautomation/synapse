@@ -112,6 +112,8 @@ export interface SparkplugCreateBaseInput {
     | "password"
     | "will"
   >;
+  /** shared subscription group name*/
+  sharedSubscriptionGroup?: string;
 }
 
 /**

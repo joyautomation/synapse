@@ -139,6 +139,9 @@ const onNodeCommand = (node: SparkplugNode) => {
  */
 const setupNodeEvents = (node: SparkplugNode) => {
   if (node.mqtt) {
+    const prefix = node.sharedSubscriptionGroup
+      ? `$shared/${node.sharedSubscriptionGroup}/`
+      : "";
     pipe(
       node.mqtt,
       onCurry<mqtt.MqttClient, "connect", OnConnectCallback>(
@@ -161,13 +164,19 @@ const setupNodeEvents = (node: SparkplugNode) => {
         "error",
         onError(node)
       ),
-      subscribeCurry(createSpbTopic("DCMD", getMqttConfigFromSparkplug(node)), {
-        qos: 0,
-      }),
-      subscribeCurry(createSpbTopic("NCMD", getMqttConfigFromSparkplug(node)), {
-        qos: 0,
-      }),
-      subscribeCurry("STATE/#", { qos: 1 })
+      subscribeCurry(
+        `${prefix}${createSpbTopic("DCMD", getMqttConfigFromSparkplug(node))}`,
+        {
+          qos: 0,
+        }
+      ),
+      subscribeCurry(
+        `${prefix}${createSpbTopic("NCMD", getMqttConfigFromSparkplug(node))}`,
+        {
+          qos: 0,
+        }
+      ),
+      subscribeCurry(`${prefix}STATE/#`, { qos: 1 })
     );
   }
   on<
