@@ -70,4 +70,4 @@ setInterval(() => {
   if (typeof metrics["testMetric2"].value === "number") {
     metrics["testMetric2"].value = metrics["testMetric2"].value + 1;
   }
-}, 5000);
+}, 1000);

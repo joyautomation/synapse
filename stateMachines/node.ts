@@ -166,16 +166,14 @@ const setupNodeEvents = (node: SparkplugNode) => {
         {
           qos: 0,
         },
-        node.sharedSubscriptionGroup
       ),
       subscribeCurry(
         `${createSpbTopic("NCMD", getMqttConfigFromSparkplug(node))}`,
         {
           qos: 0,
         },
-        node.sharedSubscriptionGroup
       ),
-      subscribeCurry("STATE/#", { qos: 1 }, node.sharedSubscriptionGroup)
+      subscribeCurry("STATE/#", { qos: 1 })
     );
   }
   on<

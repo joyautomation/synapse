@@ -423,8 +423,9 @@ export const subscribe = (
   mqttClient: mqtt.MqttClient,
   sharedGroup?: string
 ): mqtt.MqttClient => {
-  log.info("subscribed to " + topic);
-  mqttClient.subscribe(`${sharedGroup ? `$share/${sharedGroup}/` : ""}${topic}`, options);
+  const fullTopic = `${sharedGroup ? `$share/${sharedGroup}/` : ""}${topic}`;
+  log.info("subscribed to " + fullTopic);
+  mqttClient.subscribe(fullTopic, options);
   return mqttClient;
 };
 
