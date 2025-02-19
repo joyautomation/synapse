@@ -172,7 +172,7 @@ export const addSeqNumberCurry =
 export const publishNodeDeath = (
   bdSeq: number,
   mqttConfig: ISparkplugEdgeOptions,
-  client: mqtt.MqttClient
+  client: mqtt.MqttClient,
 ): void => {
   const payload = getDeathPayload(bdSeq);
   const topic = createSpbTopic("NDEATH", mqttConfig);
@@ -420,10 +420,11 @@ export const publish = (
 export const subscribe = (
   topic: string,
   options: mqtt.IClientSubscribeOptions,
-  mqttClient: mqtt.MqttClient
+  mqttClient: mqtt.MqttClient,
+  sharedGroup?: string
 ): mqtt.MqttClient => {
   log.info("subscribed to " + topic);
-  mqttClient.subscribe(topic, options);
+  mqttClient.subscribe(`${sharedGroup ? `$share/${sharedGroup}/` : ""}${topic}`, options);
   return mqttClient;
 };
 
@@ -434,9 +435,9 @@ export const subscribe = (
  * @returns {Function} A function that takes an MQTT client and subscribes to the topic
  */
 export const subscribeCurry =
-  (topic: string, options: mqtt.IClientSubscribeOptions) =>
+  (topic: string, options: mqtt.IClientSubscribeOptions, sharedGroup?: string) =>
   (mqttClient: mqtt.MqttClient): mqtt.MqttClient =>
-    subscribe(topic, options, mqttClient);
+    subscribe(topic, options, mqttClient, sharedGroup);
 
 /**
  * Unsubscribes from an MQTT topic
@@ -445,9 +446,9 @@ export const subscribeCurry =
  * @param {mqtt.MqttClient} mqttClient - The MQTT client instance
  * @returns {mqtt.MqttClient} The MQTT client instance
  */
-export const unsubscribe = (topic: string, client: mqtt.MqttClient): void => {
+export const unsubscribe = (topic: string, client: mqtt.MqttClient, sharedGroup?: string): void => {
   log.info("unsubscribed from " + topic);
-  client.unsubscribe(topic);
+  client.unsubscribe(`${sharedGroup ? `$share/${sharedGroup}/` : ""}${topic}`);
 };
 
 /** Type for functions that modify a given type */
@@ -553,7 +554,7 @@ export const createMqttClient = (
  * @param {mqtt.MqttClient | null} client - The MQTT client to destroy
  */
 export const destroyMqttClient = (client: mqtt.MqttClient | null): void => {
-  if (client) client.end();
+  client?.end();
 };
 
 /** Input type for Sparkplug B message conditions and actions */

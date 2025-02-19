@@ -1,4 +1,4 @@
-import { nanoid } from "npm:nanoid@5.0.7";
+import { nanoid } from "nanoid";
 import type { SparkplugCreateHostInput } from "../types.ts";
 import { createHost } from "../stateMachines/host.ts";
 

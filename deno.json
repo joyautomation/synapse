@@ -26,8 +26,10 @@
     "date-fns": "npm:date-fns@^3.6.0",
     "long": "npm:long@^5.2.3",
     "mqtt": "npm:mqtt@^5.10.1",
+    "nanoid": "npm:nanoid@^5.1.0",
     "pako": "npm:pako@^2.1.0",
-    "sparkplug-payload": "npm:sparkplug-payload@1.0.3"
+    "sparkplug-payload": "npm:sparkplug-payload@1.0.3",
+    "types": "npm:types@^0.1.1"
   },
   "nodeModulesDir": "auto",
   "lint": {
