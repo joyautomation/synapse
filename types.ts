@@ -173,6 +173,8 @@ export interface SparkplugBase extends SparkplugCreateBaseInput {
 export interface SparkplugCreateHostInput extends SparkplugCreateBaseInput {
   /** The primary host identifier. */
   primaryHostId: string;
+  /** shared subscription group name*/
+  sharedSubscriptionGroup?: string;
 }
 
 /**
@@ -187,6 +189,8 @@ export interface SparkplugHost extends SparkplugBase {
   groups: {
     [groupId: string]: SparkplugGroup;
   };
+  /** shared subscription group name*/
+  sharedSubscriptionGroup?: string;
 }
 
 /**

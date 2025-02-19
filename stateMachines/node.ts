@@ -161,12 +161,18 @@ const setupNodeEvents = (node: SparkplugNode) => {
         "error",
         onError(node)
       ),
-      subscribeCurry(createSpbTopic("DCMD", getMqttConfigFromSparkplug(node)), {
-        qos: 0,
-      }),
-      subscribeCurry(createSpbTopic("NCMD", getMqttConfigFromSparkplug(node)), {
-        qos: 0,
-      }),
+      subscribeCurry(
+        `${createSpbTopic("DCMD", getMqttConfigFromSparkplug(node))}`,
+        {
+          qos: 0,
+        },
+      ),
+      subscribeCurry(
+        `${createSpbTopic("NCMD", getMqttConfigFromSparkplug(node))}`,
+        {
+          qos: 0,
+        },
+      ),
       subscribeCurry("STATE/#", { qos: 1 })
     );
   }

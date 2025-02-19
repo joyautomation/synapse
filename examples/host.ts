@@ -1,4 +1,4 @@
-import { nanoid } from "npm:nanoid@5.0.7";
+import { nanoid } from "nanoid";
 import type { SparkplugCreateHostInput } from "../types.ts";
 import { createHost } from "../stateMachines/host.ts";
 
@@ -11,6 +11,7 @@ const config: SparkplugCreateHostInput = {
   clientId: `test-${nanoid(7)}`,
   version: "spBv1.0",
   primaryHostId: "testHost",
+  sharedSubscriptionGroup: "testGroup",
 };
 
 await createHost(config);

@@ -108,7 +108,16 @@ const setupHostEvents = (host: SparkplugHost) => {
         onError(host)
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
-      subscribeCurry(`${host.version}/#`, { qos: 0 })
+      (mqtt) => pipe(mqtt,
+        subscribeCurry(`${host.version}/+/NBIRTH/+`, { qos: 0 }),
+        subscribeCurry(`${host.version}/+/NCMD/+`, { qos: 0 }),
+        subscribeCurry(`${host.version}/+/NDATA/#`, { qos: 0 }, host.sharedSubscriptionGroup),
+        subscribeCurry(`${host.version}/+/NDEATH/+`, { qos: 0 }),
+        subscribeCurry(`${host.version}/+/DBIRTH/+`, { qos: 0 }),
+        subscribeCurry(`${host.version}/+/DCMD/+`, { qos: 0 }),
+        subscribeCurry(`${host.version}/+/DDATA/#`, { qos: 0 }, host.sharedSubscriptionGroup),
+        subscribeCurry(`${host.version}/+/DDEATH/+`, { qos: 0 }),
+      )
     );
     createHostMessageEvents(host);
   }
