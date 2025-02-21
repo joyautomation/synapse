@@ -153,8 +153,8 @@ const hostTransitions = {
    * @returns {SparkplugHost} The updated SparkplugHost instance.
    */
   disconnect: (host: SparkplugHost) => {
-    cleanUpEventListeners(host.events);
     destroyMqttClient(host.mqtt);
+    cleanUpEventListeners(host.events);
     return setHostStateDisconnected(host);
   },
 };
