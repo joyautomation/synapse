@@ -28,7 +28,7 @@ import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
 import {
-cleanUpEventListeners,
+  cleanUpEventListeners,
   evaluateMetrics,
   evaluateMetricValue,
   flatten,
@@ -166,13 +166,13 @@ const setupNodeEvents = (node: SparkplugNode) => {
         `${createSpbTopic("DCMD", getMqttConfigFromSparkplug(node))}`,
         {
           qos: 0,
-        },
+        }
       ),
       subscribeCurry(
         `${createSpbTopic("NCMD", getMqttConfigFromSparkplug(node))}`,
         {
           qos: 0,
-        },
+        }
       ),
       subscribeCurry("STATE/#", { qos: 1 })
     );
