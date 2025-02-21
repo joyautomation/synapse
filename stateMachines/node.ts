@@ -28,6 +28,7 @@ import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
 import {
+cleanUpEventListeners,
   evaluateMetrics,
   evaluateMetricValue,
   flatten,
@@ -192,6 +193,7 @@ export const nodeTransitions = {
     return setupNodeEvents(node);
   },
   disconnect: (node: SparkplugNode) => {
+    cleanUpEventListeners(node.events);
     killNode(node);
     destroyMqttClient(node.mqtt);
     return setNodeStateDisconnected(node);

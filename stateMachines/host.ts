@@ -23,6 +23,7 @@ import type mqtt from "mqtt";
 import { cond, setStateCurry as setState } from "../utils.ts";
 import type { HostTransition } from "./types.ts";
 import {
+cleanUpEventListeners,
   flatten,
   getMqttConfigFromSparkplug,
   onCurry,
@@ -33,6 +34,7 @@ import type {
   UMetric,
   UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
+import { setupMemoryMonitoring } from "../memory.ts";
 
 /**
  * Handles the 'connect' event for a SparkplugHost.
@@ -142,6 +144,7 @@ const hostTransitions = {
    * @returns {SparkplugHost} The updated SparkplugHost instance.
    */
   disconnect: (host: SparkplugHost) => {
+    cleanUpEventListeners(host.events);
     destroyMqttClient(host.mqtt);
     return setHostStateDisconnected(host);
   },

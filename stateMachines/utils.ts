@@ -14,6 +14,16 @@ import { handleMessage } from "../mqtt.ts";
 import { getUnixTime } from "date-fns";
 
 /**
+ * Removes all event listeners from the provided EventEmitter.
+ * @param emitter - The EventEmitter instance to clean up
+ * @returns The cleaned up EventEmitter
+ */
+export const cleanUpEventListeners = (emitter: EventEmitter) => {
+  emitter.removeAllListeners();
+  return emitter;
+};
+
+/**
  * Emits an event with optional data using the provided EventEmitter.
  * @param event - The name of the event to emit
  * @param data - Optional data to pass with the event
