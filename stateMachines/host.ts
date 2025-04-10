@@ -45,7 +45,7 @@ export const onConnect = (host: SparkplugHost) => {
     setHostStateConnected(host);
     publishHostOnline(host);
     log.info(
-      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`
+      `${host.id} connected to ${host.brokerUrl} with user ${host.username}`,
     );
     host.events.emit("connected");
   };
@@ -90,23 +90,23 @@ const setupHostEvents = (host: SparkplugHost) => {
       host.mqtt,
       onCurry<mqtt.MqttClient, "connect", mqtt.OnConnectCallback>(
         "connect",
-        onConnect(host)
+        onConnect(host),
       ),
       onCurry<mqtt.MqttClient, "message", mqtt.OnMessageCallback>(
         "message",
-        onMessage(host)
+        onMessage(host),
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
-        onDisconnect(host)
+        onDisconnect(host),
       ),
       onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
         "close",
-        onClose(host)
+        onClose(host),
       ),
       onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
         "error",
-        onError(host)
+        onError(host),
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
       (mqtt) =>
@@ -117,7 +117,7 @@ const setupHostEvents = (host: SparkplugHost) => {
           subscribeCurry(
             `${host.version}/+/NDATA/#`,
             { qos: 0 },
-            host.sharedSubscriptionGroup
+            host.sharedSubscriptionGroup,
           ),
           subscribeCurry(`${host.version}/+/NDEATH/+`, { qos: 0 }),
           subscribeCurry(`${host.version}/+/DBIRTH/+`, { qos: 0 }),
@@ -125,10 +125,10 @@ const setupHostEvents = (host: SparkplugHost) => {
           subscribeCurry(
             `${host.version}/+/DDATA/#`,
             { qos: 0 },
-            host.sharedSubscriptionGroup
+            host.sharedSubscriptionGroup,
           ),
-          subscribeCurry(`${host.version}/+/DDEATH/+`, { qos: 0 })
-        )
+          subscribeCurry(`${host.version}/+/DDEATH/+`, { qos: 0 }),
+        ),
     );
     createHostMessageEvents(host);
   }
@@ -164,7 +164,7 @@ const hostTransitions = {
  * @param {SparkplugHost} host - The SparkplugHost instance.
  * @returns {string} The current state as a string.
  */
-export const getHostStateString = (host: SparkplugHost) => {
+export const getHostStateString = (host: SparkplugHost): string => {
   if (host.states.disconnected) {
     return "disconnected";
   } else if (host.states.connected) {
@@ -220,37 +220,40 @@ const changeHostState = (
   inRequiredState: (host: SparkplugHost) => boolean,
   notInRequiredStateLogText: string,
   transition: HostTransition,
-  host: SparkplugHost
+  host: SparkplugHost,
 ) => {
   if (!inRequiredState(host)) {
     log.info(
-      `${notInRequiredStateLogText}, it is currently: ${getHostStateString(
-        host
-      )}`
+      `${notInRequiredStateLogText}, it is currently: ${
+        getHostStateString(
+          host,
+        )
+      }`,
     );
   } else {
     log.info(
-      `Host ${host.id} transitioning from ${getHostStateString(
-        host
-      )} to ${transition}`
+      `Host ${host.id} transitioning from ${
+        getHostStateString(
+          host,
+        )
+      } to ${transition}`,
     );
     hostTransitions[transition](host);
   }
   return host;
 };
-const changeHostStateCurry =
-  (
-    inRequiredState: (host: SparkplugHost) => boolean,
-    notInRequiredStateLogText: string,
-    transition: HostTransition
-  ) =>
-  (host: SparkplugHost) =>
-    changeHostState(
-      inRequiredState,
-      notInRequiredStateLogText,
-      transition,
-      host
-    );
+const changeHostStateCurry = (
+  inRequiredState: (host: SparkplugHost) => boolean,
+  notInRequiredStateLogText: string,
+  transition: HostTransition,
+) =>
+(host: SparkplugHost) =>
+  changeHostState(
+    inRequiredState,
+    notInRequiredStateLogText,
+    transition,
+    host,
+  );
 
 /**
  * Connects a SparkplugHost if it's currently disconnected.
@@ -260,7 +263,7 @@ const changeHostStateCurry =
 const connectHost = changeHostStateCurry(
   (host: SparkplugHost) => host.states.disconnected,
   "Host needs to be disconnected to be connected",
-  "connect"
+  "connect",
 );
 
 /**
@@ -272,7 +275,7 @@ export const disconnectHost: (host: SparkplugHost) => SparkplugHost =
   changeHostStateCurry(
     (host: SparkplugHost) => host.states.connected,
     "Host needs to be connected to be disconnected",
-    "disconnect"
+    "disconnect",
   );
 
 /**
@@ -355,7 +358,7 @@ const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
  * @returns {SparkplugGroupFlat[]} An array of flattened group objects, each containing flattened nodes, devices, and metrics.
  */
 export const flattenHostGroups = (
-  host: SparkplugHost
+  host: SparkplugHost,
 ): SparkplugGroupFlat[] => {
   return flatten(host.groups).map((group) => ({
     ...group,
@@ -462,7 +465,7 @@ const createHostDevice = ({ host, topic, message }: DataEventConditionArgs) => {
  */
 const publishNodeRebirthRequest = (
   host: SparkplugHost,
-  topic: SparkplugTopic
+  topic: SparkplugTopic,
 ) => {
   if (host.mqtt) {
     publishNodeCommand(
@@ -473,7 +476,7 @@ const publishNodeRebirthRequest = (
       topic.groupId,
       topic.edgeNode,
       getMqttConfigFromSparkplug(host),
-      host.mqtt
+      host.mqtt,
     );
   }
 };
@@ -536,7 +539,7 @@ export const createHostMessageEvents = (host: SparkplugHost) => {
   ["nbirth", "dbirth", "ndata", "ddata"].forEach((event) => {
     host.events.on(
       event,
-      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata")
+      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata"),
     );
   });
 };
