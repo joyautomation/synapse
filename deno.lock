@@ -6,7 +6,7 @@
     "jsr:@deno/dnt@~0.41.3": "0.41.3",
     "jsr:@deno/graph@~0.73.1": "0.73.1",
     "jsr:@joyautomation/coral@^0.0.12": "0.0.12",
-    "jsr:@joyautomation/dark-matter@^0.0.13": "0.0.13",
+    "jsr:@joyautomation/dark-matter@^0.0.26": "0.0.26",
     "jsr:@m3o/version@~0.1.11": "0.1.11",
     "jsr:@std/assert@0.223": "0.223.0",
     "jsr:@std/assert@0.226": "0.226.0",
@@ -93,8 +93,8 @@
         "jsr:@std/fmt@^1.0.2"
       ]
     },
-    "@joyautomation/dark-matter@0.0.13": {
-      "integrity": "a9943d207986701a8f597fc357682cc78f3297a2cf984cc0e0004539393e5dab"
+    "@joyautomation/dark-matter@0.0.26": {
+      "integrity": "7276ddefea2448937b72ada91b3adb86efe4f01032c1dd7915900b59201cba2e"
     },
     "@m3o/version@0.1.11": {
       "integrity": "d8e512bc6218f23c75618ead1c83ad0a7ffebb6e80f728f87a089077151a4b03",
@@ -625,7 +625,7 @@
     "dependencies": [
       "jsr:@deno/dnt@~0.41.3",
       "jsr:@joyautomation/coral@^0.0.12",
-      "jsr:@joyautomation/dark-matter@^0.0.13",
+      "jsr:@joyautomation/dark-matter@^0.0.26",
       "jsr:@m3o/version@~0.1.11",
       "jsr:@std/assert@^1.0.10",
       "jsr:@std/expect@^1.0.11",
