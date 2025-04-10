@@ -91,3 +91,17 @@ export { disableLog, enableLog, logs, setLogLevel } from "./log.ts";
 export * from "./types.ts";
 
 export * from "./mqtt.ts";
+
+/**
+ * Gets the current state of a Sparkplug node as a string.
+ * @param {SparkplugNode} node - The Sparkplug node to get the state for.
+ * @returns {string} The current state of the node as a string ("disconnected", "born", "dead", or "unknown state").
+ */
+export { getNodeStateString } from "./stateMachines/node.ts";
+
+/**
+ * Gets the current state of a SparkplugHost as a string.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @returns {string} The current state as a string ("disconnected", "born", or "unknown state").
+ */
+export { getHostStateString } from "./stateMachines/host.ts";
