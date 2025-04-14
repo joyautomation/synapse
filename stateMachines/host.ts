@@ -21,7 +21,7 @@ import {
 } from "../mqtt.ts";
 import type mqtt from "mqtt";
 import { cond, setStateCurry as setState } from "../utils.ts";
-import type { HostTransition } from "./types.ts";
+import type { HostTransition, TypedEventEmitter } from "./types.ts";
 import {
   cleanUpEventListeners,
   flatten,
@@ -34,6 +34,27 @@ import type {
   UMetric,
   UPayload,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
+
+type commandType =
+  | "nbirth"
+  | "ndeath"
+  | "ndata"
+  | "ncmd"
+  | "dcmd"
+  | "dbirth"
+  | "ddeath"
+  | "ddata";
+
+type HostEvents =
+  & {
+    "connected": void;
+    "disconnected": void;
+    "closed": void;
+    "error": Error;
+  }
+  & {
+    [K in `${commandType}`]: { topic: string; payload: UPayload };
+  };
 
 /**
  * Handles the 'connect' event for a SparkplugHost.
@@ -293,7 +314,7 @@ export const createHost = (config: SparkplugCreateHostInput): SparkplugHost => {
       connected: false,
       disconnected: true,
     },
-    events: new EventEmitter(),
+    events: new EventEmitter() as TypedEventEmitter<HostEvents>,
     scanRates: {},
     primaryHostId: config.primaryHostId,
     groups: {},
