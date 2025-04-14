@@ -16,7 +16,6 @@ import type mqtt from "mqtt";
 import { assertSpyCalls, type Spy, spy, stub } from "@std/testing/mock";
 import { EventEmitter } from "node:events";
 import { _internals } from "../mqtt.ts";
-import { getUnixTime } from "date-fns";
 
 const connectPacket: mqtt.IConnackPacket = {
   cmd: "connack",
@@ -154,7 +153,7 @@ describe("Node", () => {
           maxTime: 1000,
         },
         lastPublished: {
-          timestamp: getUnixTime(new Date()),
+          timestamp: Date.now(),
           value: null,
         },
         scanRate: 1000,
@@ -171,7 +170,7 @@ describe("Node", () => {
           maxTime: 1000,
         },
         lastPublished: {
-          timestamp: getUnixTime(new Date()),
+          timestamp: Date.now(),
           value: 100,
         },
         scanRate: 1000,

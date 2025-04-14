@@ -23,7 +23,6 @@ import type {
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import { logs } from "../log.ts";
 const { main: log } = logs;
-import { getUnixTime } from "date-fns";
 import { someTrue } from "../utils.ts";
 import { birthDevice, createDevice, killDevice } from "./device.ts";
 import { setStateCurry } from "../utils.ts";
@@ -350,11 +349,11 @@ const changeNodeStateCurry = (
 export const getNodeBirthPayload = (
   metrics: UMetric[] | undefined,
 ): UPayload => ({
-  timestamp: getUnixTime(new Date()),
+  timestamp: Date.now(),
   metrics: [
     {
       name: "Node Control/Rebirth",
-      timestamp: getUnixTime(new Date()),
+      timestamp: Date.now(),
       type: "Boolean",
       value: false,
     },
@@ -428,7 +427,7 @@ export const setLastPublished = async (
 ) => {
   if (metric.name && metric.value) {
     parent.metrics[metric.name].lastPublished = {
-      timestamp: getUnixTime(new Date()),
+      timestamp: Date.now(),
       value: await evaluateMetricValue(metric),
     };
   }
@@ -491,7 +490,7 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
     }
   }
 
-  const now = getUnixTime(new Date());
+  const now = Date.now();
   const timeSinceLastPublish = now - metric.lastPublished!.timestamp;
   const valueDifference = Math.abs(
     (metric.value as number) - Number(metric.lastPublished!.value),
@@ -536,10 +535,10 @@ export const publishMetrics = async (
     publishNodeData(
       node,
       {
-        timestamp: getUnixTime(new Date()),
+        timestamp: Date.now(),
         metrics: nodeMetrics.map((metric) => ({
           ...metric,
-          timestamp: getUnixTime(new Date()),
+          timestamp: Date.now(),
         })),
       },
       getMqttConfigFromSparkplug(node),
@@ -559,10 +558,10 @@ export const publishMetrics = async (
       publishDeviceData(
         node,
         {
-          timestamp: getUnixTime(new Date()),
+          timestamp: Date.now(),
           metrics: metrics.map((metric) => ({
             ...metric,
-            timestamp: getUnixTime(new Date()),
+            timestamp: Date.now(),
           })),
         },
         getMqttConfigFromSparkplug(node),

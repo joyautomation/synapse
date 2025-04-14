@@ -11,7 +11,6 @@ import type {
   SparkplugNode,
 } from "../types.ts";
 import { handleMessage } from "../mqtt.ts";
-import { getUnixTime } from "date-fns";
 
 /**
  * Removes all event listeners from the provided EventEmitter.
@@ -192,7 +191,7 @@ export const evaluateMetric = async (metric: SparkplugMetric) => {
   return {
     ...metric,
     value: await evaluateMetricValue(metric),
-    timestamp: getUnixTime(new Date()),
+    timestamp: Date.now(),
   };
 };
 
