@@ -35,10 +35,33 @@ import {
   on,
   onCurry,
 } from "./utils.ts";
-import type { NodeEvent, NodeTransition } from "./types.ts";
+import type { NodeEvent, NodeTransition, TypedEventEmitter } from "./types.ts";
 import { onMessage } from "./utils.ts";
 import type mqtt from "mqtt";
 import type { OnConnectCallback, OnDisconnectCallback } from "mqtt";
+
+type commandType =
+  | "nbirth"
+  | "ndeath"
+  | "ndata"
+  | "ncmd"
+  | "dcmd"
+  | "dbirth"
+  | "ddeath"
+  | "ddata";
+
+type NodeEvents =
+  & {
+    "connected": void;
+    "disconnected": void;
+    "closed": void;
+    "error": Error;
+    "ncmd": { topic: string; payload: UPayload };
+    "dcmd": { topic: string; payload: UPayload };
+  }
+  & {
+    [K in `publish-${commandType}`]: { topic: string; payload: UPayload };
+  };
 
 /**
  * Handles the connection event for a Sparkplug node.
@@ -628,7 +651,7 @@ export const createNode = (config: SparkplugCreateNodeInput): SparkplugNode => {
       acc[id] = createDevice(id, metrics);
       return acc;
     }, {} as { [id: string]: SparkplugDevice }),
-    events: new EventEmitter(),
+    events: new EventEmitter() as TypedEventEmitter<NodeEvents>,
     scanRates: {},
   };
   return connectNode(node);

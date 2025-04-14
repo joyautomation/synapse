@@ -1,4 +1,5 @@
 import type { Buffer } from "node:buffer";
+import EventEmitter from "node:events";
 import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
 
 export type HostTransition = "connect" | "disconnect";
@@ -23,3 +24,15 @@ export type NodeEvent =
   | "ndeath";
 
 export type NodeTransition = "connect" | "disconnect" | "birth" | "death";
+
+export type TypedEventEmitter<Events extends Record<string, unknown>> = {
+  on<K extends keyof Events>(
+    event: K,
+    listener: (payload: Events[K]) => void,
+  ): void;
+  off<K extends keyof Events>(
+    event: K,
+    listener: (payload: Events[K]) => void,
+  ): void;
+  emit<K extends keyof Events>(event: K, payload: Events[K]): void;
+} & EventEmitter;
