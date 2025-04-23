@@ -1,6 +1,6 @@
 {
   "name": "@joyautomation/synapse",
-  "version": "0.0.74",
+  "version": "0.0.75",
   "description": "Synapse is a tool for creating and managing neural networks.",
   "author": "Joy Automation",
   "license": "GPL-3.0",

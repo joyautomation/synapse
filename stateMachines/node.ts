@@ -448,7 +448,7 @@ export const setLastPublished = async (
   parent: SparkplugNode | SparkplugDevice,
   metric: SparkplugMetric,
 ) => {
-  if (metric.name && metric.value) {
+  if (metric.name && metric.value && parent.metrics[metric.name]) {
     parent.metrics[metric.name].lastPublished = {
       timestamp: Date.now(),
       value: await evaluateMetricValue(metric),
