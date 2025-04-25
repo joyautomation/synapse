@@ -32,7 +32,7 @@ const createSynapseLog = (name: string): Log =>
 
 // Initialize RBE logger and disable it by default
 const rbe: Log = createSynapseLog("rbe");
-setCoralLogEnable(rbe, false);
+// setCoralLogEnable(rbe, false);
 
 /**
  * Collection of all available loggers in the application
