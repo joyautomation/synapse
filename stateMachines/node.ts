@@ -50,18 +50,16 @@ type commandType =
   | "ddeath"
   | "ddata";
 
-type NodeEvents =
-  & {
-    "connected": void;
-    "disconnected": void;
-    "closed": void;
-    "error": Error;
-    "ncmd": { topic: string; payload: UPayload };
-    "dcmd": { topic: string; payload: UPayload };
-  }
-  & {
-    [K in `publish-${commandType}`]: { topic: string; payload: UPayload };
-  };
+type NodeEvents = {
+  connected: void;
+  disconnected: void;
+  closed: void;
+  error: Error;
+  ncmd: { topic: string; payload: UPayload };
+  dcmd: { topic: string; payload: UPayload };
+} & {
+  [K in `publish-${commandType}`]: { topic: string; payload: UPayload };
+};
 
 /**
  * Handles the connection event for a Sparkplug node.
@@ -72,7 +70,7 @@ const onConnect = (node: SparkplugNode) => {
   return async () => {
     setNodeStateConnected(node);
     log.info(
-      `${node.id} connected to ${node.brokerUrl} with user ${node.username}`,
+      `${node.id} connected to ${node.brokerUrl} with user ${node.username}`
     );
     node.events.emit("connected");
     birthNode(node);
@@ -107,7 +105,7 @@ const onDisconnect = (node: SparkplugNode): OnDisconnectCallback => {
 const onClose = (node: SparkplugNode) => {
   return () => {
     setNodeStateDisconnected(node);
-    log.info(`${node.id} closed`);
+    log.info(`${node.id} connection closed.`);
     node.events.emit("closed");
   };
 };
@@ -121,7 +119,7 @@ const onError = (node: SparkplugNode) => {
   return (error: Error) => {
     setNodeStateDisconnected(node);
     log.error(error);
-    node.events.emit("error", error);
+    node.events.emit("mqttError", error);
   };
 };
 
@@ -166,37 +164,37 @@ const setupNodeEvents = (node: SparkplugNode) => {
       node.mqtt,
       onCurry<mqtt.MqttClient, "connect", OnConnectCallback>(
         "connect",
-        onConnect(node),
+        onConnect(node)
       ),
       onCurry<mqtt.MqttClient, "message", mqtt.OnMessageCallback>(
         "message",
-        onMessage(node),
+        onMessage(node)
       ),
       onCurry<mqtt.MqttClient, "disconnect", mqtt.OnDisconnectCallback>(
         "disconnect",
-        onDisconnect(node),
+        onDisconnect(node)
       ),
       onCurry<mqtt.MqttClient, "close", mqtt.OnCloseCallback>(
         "close",
-        onClose(node),
+        onClose(node)
       ),
       onCurry<mqtt.MqttClient, "error", mqtt.OnErrorCallback>(
         "error",
-        onError(node),
+        onError(node)
       ),
       subscribeCurry(
         `${createSpbTopic("DCMD", getMqttConfigFromSparkplug(node))}`,
         {
           qos: 0,
-        },
+        }
       ),
       subscribeCurry(
         `${createSpbTopic("NCMD", getMqttConfigFromSparkplug(node))}`,
         {
           qos: 0,
-        },
+        }
       ),
-      subscribeCurry("STATE/#", { qos: 1 }),
+      subscribeCurry("STATE/#", { qos: 1 })
     );
   }
   on<
@@ -228,7 +226,7 @@ export const nodeTransitions = {
         undefined,
         getNodeBirthPayload(await evaluateMetrics(node.metrics)),
         getMqttConfigFromSparkplug(node),
-        node.mqtt,
+        node.mqtt
       );
     } else {
       log.warn("Node birth called without MQTT client");
@@ -283,7 +281,7 @@ const deriveSetNodeState =
     pipe(
       node,
       resetNodeState,
-      setStateCurry<SparkplugNode, SparkplugNode["states"]>(state),
+      setStateCurry<SparkplugNode, SparkplugNode["states"]>(state)
     );
 
 /**
@@ -328,41 +326,38 @@ const changeNodeState = (
   inRequiredState: (node: SparkplugNode) => boolean,
   notInRequiredStateLogText: string,
   transition: NodeTransition,
-  node: SparkplugNode,
+  node: SparkplugNode
 ) => {
   if (!inRequiredState(node)) {
     log.info(
-      `${notInRequiredStateLogText}, it is currently: ${
-        getNodeStateString(
-          node,
-        )
-      }`,
+      `${notInRequiredStateLogText}, it is currently: ${getNodeStateString(
+        node
+      )}`
     );
   } else {
     log.info(
-      `Node ${node.id} transitioning from ${
-        getNodeStateString(
-          node,
-        )
-      } to ${transition}`,
+      `Node ${node.id} transitioning from ${getNodeStateString(
+        node
+      )} to ${transition}`
     );
     nodeTransitions[transition](node);
   }
   return node;
 };
 
-const changeNodeStateCurry = (
-  inRequiredState: (node: SparkplugNode) => boolean,
-  notInRequiredStateLogText: string,
-  transition: NodeTransition,
-) =>
-(node: SparkplugNode) =>
-  changeNodeState(
-    inRequiredState,
-    notInRequiredStateLogText,
-    transition,
-    node,
-  );
+const changeNodeStateCurry =
+  (
+    inRequiredState: (node: SparkplugNode) => boolean,
+    notInRequiredStateLogText: string,
+    transition: NodeTransition
+  ) =>
+  (node: SparkplugNode) =>
+    changeNodeState(
+      inRequiredState,
+      notInRequiredStateLogText,
+      transition,
+      node
+    );
 
 /**
  * Gets the node birth payload.
@@ -370,7 +365,7 @@ const changeNodeStateCurry = (
  * @returns {UPayload} The node birth payload.
  */
 export const getNodeBirthPayload = (
-  metrics: UMetric[] | undefined,
+  metrics: UMetric[] | undefined
 ): UPayload => ({
   timestamp: Date.now(),
   metrics: [
@@ -395,9 +390,9 @@ const birthNode = (node: SparkplugNode) =>
     changeNodeStateCurry(
       (node: SparkplugNode) => node.states.connected.dead,
       "Node needs to be dead to be born",
-      "birth",
+      "birth"
     ),
-    setNodeStateBorn,
+    setNodeStateBorn
   );
 
 /**
@@ -411,9 +406,9 @@ const killNode = (node: SparkplugNode) =>
     changeNodeStateCurry(
       (node: SparkplugNode) => node.states.connected.born,
       "Node needs to be born to be dead",
-      "death",
+      "death"
     ),
-    setNodeStateDead,
+    setNodeStateDead
   );
 
 /**
@@ -424,7 +419,7 @@ const killNode = (node: SparkplugNode) =>
 const connectNode = changeNodeStateCurry(
   (node: SparkplugNode) => node.states.disconnected,
   "Node needs to be disconnected to be connected",
-  "connect",
+  "connect"
 );
 
 /**
@@ -436,7 +431,7 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
   changeNodeStateCurry(
     (node: SparkplugNode) => someTrue(...Object.values(node.states.connected)),
     "Node needs to be connected to be disconnected",
-    "disconnect",
+    "disconnect"
   );
 /**
  * Sets the last published timestamp and value for a given metric in a Sparkplug Node or Device.
@@ -446,7 +441,7 @@ export const disconnectNode: (node: SparkplugNode) => SparkplugNode =
  */
 export const setLastPublished = async (
   parent: SparkplugNode | SparkplugDevice,
-  metric: SparkplugMetric,
+  metric: SparkplugMetric
 ) => {
   if (metric.name && parent.metrics[metric.name]) {
     parent.metrics[metric.name].lastPublished = {
@@ -507,7 +502,7 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
   ) {
     if (metric.value !== metric.lastPublished?.value) {
       logs.rbe.debug(
-        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
+        `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`
       );
       return true;
     }
@@ -516,12 +511,12 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
   const now = Date.now();
   const timeSinceLastPublish = now - metric.lastPublished!.timestamp;
   const valueDifference = Math.abs(
-    (metric.value as number) - Number(metric.lastPublished!.value),
+    (metric.value as number) - Number(metric.lastPublished!.value)
   );
 
   if (metric.deadband?.value && valueDifference > metric.deadband.value) {
     logs.rbe.debug(
-      `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`,
+      `Metric ${metric.name} needs to be published, because it's value changed. ${metric.value} vs ${metric.lastPublished?.value}`
     );
     return true;
   } else if (
@@ -529,12 +524,12 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
     timeSinceLastPublish > metric.deadband.maxTime
   ) {
     logs.rbe.debug(
-      `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`,
+      `Metric ${metric.name} needs to be published, because it's max time has been exceeded. ${timeSinceLastPublish} sec > ${metric.deadband.maxTime} sec`
     );
     return true;
   }
   logs.rbe.debug(
-    `Metric ${metric.name} does not need to be published. ${timeSinceLastPublish} < ${metric.deadband?.maxTime}, ${metric.value} vs. ${metric.lastPublished?.value}`,
+    `Metric ${metric.name} does not need to be published. ${timeSinceLastPublish} < ${metric.deadband?.maxTime}, ${metric.value} vs. ${metric.lastPublished?.value}`
   );
   return false;
 };
@@ -548,11 +543,11 @@ export const metricNeedsToPublish = (metric: SparkplugMetric) => {
 export const publishMetrics = async (
   node: SparkplugNode,
   scanRate?: number,
-  metricSelector: (metric: SparkplugMetric) => boolean = () => true,
+  metricSelector: (metric: SparkplugMetric) => boolean = () => true
 ) => {
   const evaluatedMetrics = await evaluateMetrics(node.metrics);
   const nodeMetrics = evaluatedMetrics.filter(
-    (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric),
+    (metric) => metric.scanRate === scanRate && metricNeedsToPublish(metric)
   );
   if (nodeMetrics.length > 0 && node.mqtt) {
     publishNodeData(
@@ -565,7 +560,7 @@ export const publishMetrics = async (
         })),
       },
       getMqttConfigFromSparkplug(node),
-      node.mqtt,
+      node.mqtt
     );
   }
   nodeMetrics.forEach((metric) => setLastPublished(node, metric));
@@ -575,7 +570,7 @@ export const publishMetrics = async (
       (metric) =>
         metricSelector(metric) &&
         (scanRate == null || metric.scanRate === scanRate) &&
-        metricNeedsToPublish(metric),
+        metricNeedsToPublish(metric)
     );
     if (metrics.length > 0 && node.mqtt) {
       publishDeviceData(
@@ -589,7 +584,7 @@ export const publishMetrics = async (
         },
         getMqttConfigFromSparkplug(node),
         node.mqtt,
-        device.id,
+        device.id
       );
       metrics.forEach((metric) => setLastPublished(device, metric));
     }
@@ -608,16 +603,16 @@ export const startScans = (node: SparkplugNode) => {
         ...flatten(node.metrics),
         ...flatten(node.devices).reduce(
           (acc, devices) => acc.concat(flatten(devices.metrics)),
-          [] as SparkplugMetric[],
+          [] as SparkplugMetric[]
         ),
-      ].map((metric) => metric.scanRate),
+      ].map((metric) => metric.scanRate)
     ),
   ];
   return scanRates.reduce((acc, scanRate) => {
     if (scanRate != null) {
       acc[scanRate] = setInterval(
         () => publishMetrics(node, scanRate),
-        scanRate,
+        scanRate
       );
     }
     return acc;
