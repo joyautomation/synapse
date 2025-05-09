@@ -118,7 +118,6 @@ const onClose = (node: SparkplugNode) => {
 const onError = (node: SparkplugNode) => {
   return (error: Error) => {
     setNodeStateDisconnected(node);
-    log.error(error);
     node.events.emit("mqttError", error);
   };
 };
