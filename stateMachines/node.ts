@@ -181,12 +181,21 @@ const setupNodeEvents = (node: SparkplugNode) => {
         "error",
         onError(node)
       ),
-      subscribeCurry(
-        `${createSpbTopic("DCMD", getMqttConfigFromSparkplug(node))}`,
-        {
-          qos: 0,
+      (mqtt) => {
+        for (const device of Object.values(node.devices)) {
+          subscribeCurry(
+            `${createSpbTopic(
+              "DCMD",
+              getMqttConfigFromSparkplug(node),
+              device.id
+            )}`,
+            {
+              qos: 0,
+            }
+          )(mqtt);
         }
-      ),
+        return mqtt;
+      },
       subscribeCurry(
         `${createSpbTopic("NCMD", getMqttConfigFromSparkplug(node))}`,
         {
@@ -220,12 +229,9 @@ export const nodeTransitions = {
   birth: async (node: SparkplugNode) => {
     if (node.mqtt) {
       publishNodeBirth(
-        node.bdseq,
-        node.seq,
+        node,
         undefined,
-        getNodeBirthPayload(await evaluateMetrics(node.metrics)),
-        getMqttConfigFromSparkplug(node),
-        node.mqtt
+        getNodeBirthPayload(await evaluateMetrics(node.metrics))
       );
     } else {
       log.warn("Node birth called without MQTT client");
