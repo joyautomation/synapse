@@ -751,8 +751,14 @@ export const setValue = (node: SparkplugNode, name: string, value: SparkplugMetr
     if (!node.devices[deviceId]) {
       return createFail(`Device ${deviceId} does not exist`);
     }
+    if (!node.devices[deviceId].metrics[name]) {
+      return createFail(`Metric ${name} does not exist`);
+    }
     node.devices[deviceId].metrics[name].value = value
   } else {
+    if (!node.metrics[name]) {
+      return createFail(`Metric ${name} does not exist`);
+    }
     node.metrics[name].value = value
   }
   return createSuccess(node);
