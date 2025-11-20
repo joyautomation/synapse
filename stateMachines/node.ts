@@ -6,7 +6,7 @@ import type {
   SparkplugNode,
   SparkplugNodeScanRates,
 } from "../types.ts";
-import { createFail, createSuccess, pipe } from "@joyautomation/dark-matter";
+import { createFail, createSuccess, pipe, type Result } from "@joyautomation/dark-matter";
 import {
   createMqttClient,
   createSpbTopic,
@@ -666,7 +666,7 @@ export const createNode = (config: SparkplugCreateNodeInput): SparkplugNode => {
  * @param deviceId - Optional device ID. If provided, adds metrics to the device; otherwise adds to the node
  * @returns Success result with the updated node, or failure if the device doesn't exist
  */
-export const addMetrics = (node: SparkplugNode, metrics: Record<string, SparkplugMetric>, deviceId?: string) => {
+export const addMetrics = (node: SparkplugNode, metrics: Record<string, SparkplugMetric>, deviceId?: string): Result<SparkplugNode> => {
   killScans(node);
   if (deviceId) {
     if (!node.devices[deviceId]) {
@@ -689,7 +689,7 @@ export const addMetrics = (node: SparkplugNode, metrics: Record<string, Sparkplu
  * @param deviceId - Optional device ID. If provided, sets metrics on the device; otherwise sets on the node
  * @returns Success result with the updated node, or failure if the device doesn't exist
  */
-export const setMetrics = (node: SparkplugNode, metrics: Record<string, SparkplugMetric>, deviceId?: string) => {
+export const setMetrics = (node: SparkplugNode, metrics: Record<string, SparkplugMetric>, deviceId?: string): Result<SparkplugNode> => {
   killScans(node);
   if (deviceId) {
     if (!node.devices[deviceId]) {
@@ -712,7 +712,7 @@ export const setMetrics = (node: SparkplugNode, metrics: Record<string, Sparkplu
  * @param deviceId - Optional device ID. If provided, removes metrics from the device; otherwise removes from the node
  * @returns Success result with the updated node, or failure if the device doesn't exist
  */
-export const removeMetrics = (node: SparkplugNode, names: string[], deviceId?: string) => {
+export const removeMetrics = (node: SparkplugNode, names: string[], deviceId?: string): Result<SparkplugNode> => {
   killScans(node); 
   if (deviceId) {
     if (!node.devices[deviceId]) {
@@ -746,7 +746,7 @@ export const removeMetrics = (node: SparkplugNode, names: string[], deviceId?: s
  * @param deviceId - Optional device ID. If provided, updates the metric on the device; otherwise updates on the node
  * @returns Success result with the updated node, or failure if the device doesn't exist
  */
-export const setValue = (node: SparkplugNode, name: string, value: SparkplugMetric["value"], deviceId?: string) => {
+export const setValue = (node: SparkplugNode, name: string, value: SparkplugMetric["value"], deviceId?: string): Result<SparkplugNode> => {
   if (deviceId) {
     if (!node.devices[deviceId]) {
       return createFail(`Device ${deviceId} does not exist`);
