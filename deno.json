@@ -1,6 +1,6 @@
 {
   "name": "@joyautomation/synapse",
-  "version": "0.0.79",
+  "version": "0.0.83",
   "description": "Synapse is a tool for creating and managing neural networks.",
   "author": "Joy Automation",
   "license": "GPL-3.0",
@@ -23,6 +23,7 @@
     "@std/assert": "jsr:@std/assert@^1.0.10",
     "@std/expect": "jsr:@std/expect@^1.0.11",
     "@std/testing": "jsr:@std/testing@^1.0.9",
+    "@types/node": "npm:@types/node@^24.2.0",
     "date-fns": "npm:date-fns@^3.6.0",
     "long": "npm:long@^5.2.3",
     "mqtt": "npm:mqtt@^5.10.1",
