@@ -6,7 +6,7 @@ import type {
   SparkplugNode,
   SparkplugNodeScanRates,
 } from "../types.ts";
-import { pipe } from "@joyautomation/dark-matter";
+import { createFail, createSuccess, pipe } from "@joyautomation/dark-matter";
 import {
   createMqttClient,
   createSpbTopic,
@@ -136,7 +136,7 @@ export const nodeCommands = {
  * @returns {string[] | undefined} An array of derived command names.
  */
 const deriveNodeCommands = (message: UPayload) =>
-  message.metrics?.map((metric) =>
+  message.metrics?.map((metric: UMetric) =>
     metric.name?.replace("Node Control/", "").toLowerCase()
   );
 
@@ -656,3 +656,105 @@ export const createNode = (config: SparkplugCreateNodeInput): SparkplugNode => {
   };
   return connectNode(node);
 };
+
+/**
+ * Adds metrics to a Sparkplug node or device, merging with existing metrics.
+ * Temporarily stops scans during the operation and restarts them afterwards.
+ * 
+ * @param node - The Sparkplug node to modify
+ * @param metrics - Record of metrics to add (will be merged with existing metrics)
+ * @param deviceId - Optional device ID. If provided, adds metrics to the device; otherwise adds to the node
+ * @returns Success result with the updated node, or failure if the device doesn't exist
+ */
+export const addMetrics = (node: SparkplugNode, metrics: Record<string, SparkplugMetric>, deviceId?: string) => {
+  killScans(node);
+  if (deviceId) {
+    if (!node.devices[deviceId]) {
+      return createFail(`Device ${deviceId} does not exist`);
+    }
+    node.devices[deviceId].metrics = {...node.devices[deviceId].metrics, ...metrics}
+  } else {
+    node.metrics = {...node.metrics, ...metrics}
+  }
+  startScans(node);
+  return createSuccess(node);
+}
+
+/**
+ * Sets metrics on a Sparkplug node or device, replacing all existing metrics.
+ * Temporarily stops scans during the operation and restarts them afterwards.
+ * 
+ * @param node - The Sparkplug node to modify
+ * @param metrics - Record of metrics to set (will replace all existing metrics)
+ * @param deviceId - Optional device ID. If provided, sets metrics on the device; otherwise sets on the node
+ * @returns Success result with the updated node, or failure if the device doesn't exist
+ */
+export const setMetrics = (node: SparkplugNode, metrics: Record<string, SparkplugMetric>, deviceId?: string) => {
+  killScans(node);
+  if (deviceId) {
+    if (!node.devices[deviceId]) {
+      return createFail(`Device ${deviceId} does not exist`);
+    }
+    node.devices[deviceId].metrics = metrics
+  } else {
+    node.metrics = metrics
+  }
+  startScans(node);
+  return createSuccess(node);
+};
+
+/**
+ * Removes specified metrics from a Sparkplug node or device by name.
+ * Temporarily stops scans during the operation and restarts them afterwards.
+ * 
+ * @param node - The Sparkplug node to modify
+ * @param names - Array of metric names to remove
+ * @param deviceId - Optional device ID. If provided, removes metrics from the device; otherwise removes from the node
+ * @returns Success result with the updated node, or failure if the device doesn't exist
+ */
+export const removeMetrics = (node: SparkplugNode, names: string[], deviceId?: string) => {
+  killScans(node); 
+  if (deviceId) {
+    if (!node.devices[deviceId]) {
+      return createFail(`Device ${deviceId} does not exist`);
+    }
+    node.devices[deviceId].metrics = Object.keys(node.devices[deviceId].metrics).reduce((acc, key) => {
+      if (!names.includes(key)) {
+        acc[key] = node.devices[deviceId].metrics[key];
+      }
+      return acc;
+    }, {} as Record<string, SparkplugMetric>);
+  } else {
+    node.metrics = Object.keys(node.metrics).reduce((acc, key) => {
+      if (!names.includes(key)) {
+        acc[key] = node.metrics[key];
+      }
+      return acc;
+    }, {} as Record<string, SparkplugMetric>);
+  }
+  startScans(node);
+  return createSuccess(node);
+};
+
+/**
+ * Updates the value of a specific metric on a Sparkplug node or device.
+ * Does not restart scans, allowing for quick value updates.
+ * 
+ * @param node - The Sparkplug node to modify
+ * @param name - The name of the metric to update
+ * @param value - The new value to set for the metric
+ * @param deviceId - Optional device ID. If provided, updates the metric on the device; otherwise updates on the node
+ * @returns Success result with the updated node, or failure if the device doesn't exist
+ */
+export const setValue = (node: SparkplugNode, name: string, value: SparkplugMetric["value"], deviceId?: string) => {
+  if (deviceId) {
+    if (!node.devices[deviceId]) {
+      return createFail(`Device ${deviceId} does not exist`);
+    }
+    node.devices[deviceId].metrics[name].value = value
+  } else {
+    node.metrics[name].value = value
+  }
+  return createSuccess(node);
+};
+

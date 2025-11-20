@@ -105,3 +105,41 @@ export { getNodeStateString } from "./stateMachines/node.ts";
  * @returns {string} The current state as a string ("disconnected", "born", or "unknown state").
  */
 export { getHostStateString } from "./stateMachines/host.ts";
+
+/**
+ * Adds metrics to a Sparkplug node or device, merging with existing metrics.
+ * @param {SparkplugNode} node - The Sparkplug node to modify.
+ * @param {Record<string, SparkplugMetric>} metrics - Record of metrics to add (will be merged with existing metrics).
+ * @param {string} [deviceId] - Optional device ID. If provided, adds metrics to the device; otherwise adds to the node.
+ * @returns {Result<SparkplugNode>} Success result with the updated node, or failure if the device doesn't exist.
+ */
+export { addMetrics } from "./stateMachines/node.ts";
+
+/**
+ * Sets metrics on a Sparkplug node or device, replacing all existing metrics.
+ * @param {SparkplugNode} node - The Sparkplug node to modify.
+ * @param {Record<string, SparkplugMetric>} metrics - Record of metrics to set (will replace all existing metrics).
+ * @param {string} [deviceId] - Optional device ID. If provided, sets metrics on the device; otherwise sets on the node.
+ * @returns {Result<SparkplugNode>} Success result with the updated node, or failure if the device doesn't exist.
+ */
+export { setMetrics } from "./stateMachines/node.ts";
+
+/**
+ * Removes specified metrics from a Sparkplug node or device by name.
+ * @param {SparkplugNode} node - The Sparkplug node to modify.
+ * @param {string[]} names - Array of metric names to remove.
+ * @param {string} [deviceId] - Optional device ID. If provided, removes metrics from the device; otherwise removes from the node.
+ * @returns {Result<SparkplugNode>} Success result with the updated node, or failure if the device doesn't exist.
+ */
+export { removeMetrics } from "./stateMachines/node.ts";
+
+/**
+ * Updates the value of a specific metric on a Sparkplug node or device.
+ * @param {SparkplugNode} node - The Sparkplug node to modify.
+ * @param {string} name - The name of the metric to update.
+ * @param {SparkplugMetric["value"]} value - The new value to set for the metric.
+ * @param {string} [deviceId] - Optional device ID. If provided, updates the metric on the device; otherwise updates on the node.
+ * @returns {Result<SparkplugNode>} Success result with the updated node, or failure if the device doesn't exist.
+ */
+export { setValue } from "./stateMachines/node.ts";
+
