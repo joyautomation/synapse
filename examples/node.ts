@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { createNode } from "../stateMachines/node.ts";
+import { createNode, nodeCommands } from "../stateMachines/node.ts";
 import type {
   SparkplugCreateDeviceInput,
   SparkplugCreateNodeInput,
@@ -71,3 +71,10 @@ setInterval(() => {
     metrics["testMetric2"].value = metrics["testMetric2"].value + 1;
   }
 }, 1000);
+
+// Trigger rebirth every 10 seconds to test bdseq incrementing
+let rebirthCount = 0;
+setInterval(() => {
+  console.log(`\n=== Triggering rebirth #${++rebirthCount} (bdseq should increment) ===`);
+  nodeCommands.rebirth(node);
+}, 10000);

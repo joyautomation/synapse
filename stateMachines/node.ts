@@ -241,6 +241,12 @@ export const nodeTransitions = {
   death: (node: SparkplugNode) => {
     if (node.mqtt) {
       publishNodeDeath(node.bdseq, getMqttConfigFromSparkplug(node), node.mqtt);
+      // Increment bdseq after publishing NDEATH for the next birth cycle
+      node.bdseq++;
+      // Keep bdseq within 8-bit unsigned integer range (0-255) as per Sparkplug B spec
+      if (node.bdseq > 255) {
+        node.bdseq = 0;
+      }
     }
     return node;
   },
