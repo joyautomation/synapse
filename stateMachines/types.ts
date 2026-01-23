@@ -4,7 +4,7 @@ import type { UPayload } from "sparkplug-payload/lib/sparkplugbpayload.js";
 
 export type HostTransition = "connect" | "disconnect";
 
-export type HostEvent = "connect" | "disconnect" | "message";
+export type HostEvent = "connect" | "disconnect" | "message" | "mqttError";
 
 export type Listener =
   | ((topic: string, message: Buffer) => void)
@@ -14,6 +14,7 @@ export type NodeEvent =
   | "connect"
   | "disconnect"
   | "message"
+  | "mqttError"
   | "ncmd"
   | "dcmd"
   | "ddata"
