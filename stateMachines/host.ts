@@ -97,7 +97,7 @@ export const onError = (host: SparkplugHost) => {
   return (error: Error) => {
     setHostStateDisconnected(host);
     log.error(error);
-    host.events.emit("error", error);
+    host.events.emit("mqttError", error);
   };
 };
 
