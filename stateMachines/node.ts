@@ -246,7 +246,8 @@ export const nodeTransitions = {
   disconnect: (node: SparkplugNode) => {
     killNode(node);
     destroyMqttClient(node.mqtt);
-    cleanUpEventListeners(node.events);
+    // Only remove internal "ncmd" listener, preserve external listeners (e.g., "dcmd")
+    node.events.removeAllListeners("ncmd");
     return setNodeStateDisconnected(node);
   },
   birth: async (node: SparkplugNode) => {
