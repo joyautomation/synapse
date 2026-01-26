@@ -63,6 +63,8 @@ type NodeEvents = {
 
 /**
  * Handles the connection event for a Sparkplug node.
+ * Re-subscribes to topics on every connect (including auto-reconnects)
+ * because clean session means broker forgets subscriptions on disconnect.
  * @param {SparkplugNode} node - The Sparkplug node to handle the connection for.
  * @returns {() => void} A function to be called when the connection is established.
  */
@@ -72,6 +74,27 @@ const onConnect = (node: SparkplugNode) => {
     log.info(
       `${node.id} connected to ${node.brokerUrl} with user ${node.username}`
     );
+
+    // Re-subscribe to command topics on every connect (including auto-reconnects)
+    // This is necessary because clean: true means broker forgets subscriptions
+    if (node.mqtt) {
+      const mqttConfig = getMqttConfigFromSparkplug(node);
+      // Subscribe to DCMD for each device
+      for (const device of Object.values(node.devices)) {
+        subscribeCurry(
+          `${createSpbTopic("DCMD", mqttConfig, device.id)}`,
+          { qos: 0 }
+        )(node.mqtt);
+      }
+      // Subscribe to NCMD
+      subscribeCurry(
+        `${createSpbTopic("NCMD", mqttConfig)}`,
+        { qos: 0 }
+      )(node.mqtt);
+      // Subscribe to STATE
+      subscribeCurry("STATE/#", { qos: 1 })(node.mqtt);
+    }
+
     node.events.emit("connected");
     birthNode(node);
     for (const device of Object.values(node.devices)) {
