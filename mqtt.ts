@@ -624,12 +624,18 @@ const parseTopicMessage = (topic: SparkplugTopic) => {
 const createCommandAction =
   (key: string, emitter: EventEmitter) =>
   ({ topic, message }: SpbMessageConditionInput) => {
-    const decompressed = decompressPayload(message);
-    if (isBuffer(decompressed)) {
-      const decoded = decodePayload(decompressed);
-      emitter.emit(key.toLowerCase(), topic, decoded);
+    try {
+      const decompressed = decompressPayload(message);
+      if (isBuffer(decompressed)) {
+        const decoded = decodePayload(decompressed);
+        emitter.emit(key.toLowerCase(), topic, decoded);
+      }
+      log.debug(`${key} message received for ${parseTopicMessage(topic)}`);
+    } catch (error) {
+      log.error(
+        `Error processing ${key} message for ${parseTopicMessage(topic)}: ${error instanceof Error ? error.message : error}`
+      );
     }
-    log.debug(`${key} message received for ${parseTopicMessage(topic)}`);
   };
 
 /**
