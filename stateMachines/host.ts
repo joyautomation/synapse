@@ -141,14 +141,14 @@ const setupHostEvents = (host: SparkplugHost) => {
             host.sharedSubscriptionGroup,
           ),
           subscribeCurry(`${host.version}/+/NDEATH/+`, { qos: 0 }),
-          subscribeCurry(`${host.version}/+/DBIRTH/+`, { qos: 0 }),
+          subscribeCurry(`${host.version}/+/DBIRTH/#`, { qos: 0 }),
           subscribeCurry(`${host.version}/+/DCMD/+`, { qos: 0 }),
           subscribeCurry(
             `${host.version}/+/DDATA/#`,
             { qos: 0 },
             host.sharedSubscriptionGroup,
           ),
-          subscribeCurry(`${host.version}/+/DDEATH/+`, { qos: 0 }),
+          subscribeCurry(`${host.version}/+/DDEATH/#`, { qos: 0 }),
         ),
     );
     createHostMessageEvents(host);
