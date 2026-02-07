@@ -6,7 +6,7 @@ import type {
   SparkplugNode,
   SparkplugTopic,
 } from "./types.ts";
-import * as sparkplug from "npm:sparkplug-payload@1.0.3";
+import * as sparkplug from "sparkplug-payload";
 import { pipe } from "@joyautomation/dark-matter";
 import { logs } from "./log.ts";
 const { main: log } = logs;
