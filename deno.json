@@ -1,9 +1,9 @@
 {
   "name": "@joyautomation/synapse",
-  "version": "0.0.89",
+  "version": "0.0.90",
   "description": "Synapse is a tool for creating and managing neural networks.",
   "author": "Joy Automation",
-  "license": "GPL-3.0-or-later",
+  "license": "Apache-2.0",
   "repository": "github:joyautomation/synapse",
   "homepage": "https://github.com/joyautomation/synapse#readme",
   "bugs": "https://github.com/joyautomation/synapse/issues",
