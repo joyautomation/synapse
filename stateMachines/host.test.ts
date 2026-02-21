@@ -1,7 +1,15 @@
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
-import { createHost, disconnectHost, flattenHostGroups } from "./host.ts";
+import {
+  createHost,
+  disconnectHost,
+  extractAndStoreDefinitions,
+  flattenHostGroups,
+  flattenTemplateMetrics,
+  getTemplateDefinitions,
+} from "./host.ts";
 import type { SparkplugCreateHostInput, SparkplugHost } from "../types.ts";
+import type { UMetric } from "sparkplug-payload/lib/sparkplugbpayload.js";
 import type { MqttClient } from "mqtt";
 import type mqtt from "mqtt";
 import { assertSpyCalls, spy, stub } from "@std/testing/mock";
@@ -191,6 +199,348 @@ describe("The host state machine", () => {
           ],
         },
       ]);
+    });
+  });
+
+  describe("flattenTemplateMetrics", () => {
+    it("passes regular metrics through unchanged", () => {
+      const metrics: UMetric[] = [
+        { name: "temperature", type: "Double", value: 72.5 },
+        { name: "running", type: "Boolean", value: true },
+      ];
+      const result = flattenTemplateMetrics(metrics);
+      expect(result).toEqual([
+        { name: "temperature", type: "Double", value: 72.5 },
+        { name: "running", type: "Boolean", value: true },
+      ]);
+    });
+
+    it("flattens a template instance into path-based scalar metrics", () => {
+      const metrics: UMetric[] = [
+        {
+          name: "Pump1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Pump_Type",
+            metrics: [
+              { name: "temperature", type: "Double", value: 72.5 },
+              { name: "pressure", type: "Float", value: 100.0 },
+            ],
+          },
+        },
+      ];
+      const result = flattenTemplateMetrics(metrics) as (UMetric & {
+        templateRef?: string;
+        templateInstance?: string;
+      })[];
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe("Pump1/temperature");
+      expect(result[0].type).toBe("Double");
+      expect(result[0].value).toBe(72.5);
+      expect(result[0].templateRef).toBe("Pump_Type");
+      expect(result[0].templateInstance).toBe("Pump1");
+      expect(result[1].name).toBe("Pump1/pressure");
+      expect(result[1].templateRef).toBe("Pump_Type");
+      expect(result[1].templateInstance).toBe("Pump1");
+    });
+
+    it("skips template definitions", () => {
+      const metrics: UMetric[] = [
+        {
+          name: "Pump_Type",
+          type: "Template",
+          value: {
+            isDefinition: true,
+            metrics: [
+              { name: "temperature", type: "Double", value: null },
+              { name: "pressure", type: "Float", value: null },
+            ],
+          },
+        },
+        { name: "uptimeSeconds", type: "UInt64", value: 3600 },
+      ];
+      const result = flattenTemplateMetrics(metrics);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("uptimeSeconds");
+    });
+
+    it("handles mixed regular and template metrics", () => {
+      const metrics: UMetric[] = [
+        { name: "uptimeSeconds", type: "UInt64", value: 3600 },
+        {
+          name: "Pump1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Pump_Type",
+            metrics: [
+              { name: "temperature", type: "Double", value: 72.5 },
+            ],
+          },
+        },
+        { name: "status", type: "String", value: "online" },
+      ];
+      const result = flattenTemplateMetrics(metrics);
+      expect(result).toHaveLength(3);
+      expect(result[0].name).toBe("uptimeSeconds");
+      expect(result[1].name).toBe("Pump1/temperature");
+      expect(result[2].name).toBe("status");
+    });
+
+    it("handles nested template instances recursively", () => {
+      const metrics: UMetric[] = [
+        {
+          name: "Station1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Station_Type",
+            metrics: [
+              {
+                name: "Pump1",
+                type: "Template",
+                value: {
+                  isDefinition: false,
+                  templateRef: "Pump_Type",
+                  metrics: [
+                    { name: "temperature", type: "Double", value: 72.5 },
+                  ],
+                },
+              },
+              { name: "stationName", type: "String", value: "Main" },
+            ],
+          },
+        },
+      ];
+      const result = flattenTemplateMetrics(metrics) as (UMetric & {
+        templateRef?: string;
+        templateInstance?: string;
+      })[];
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe("Station1/Pump1/temperature");
+      expect(result[0].templateRef).toBe("Pump_Type");
+      expect(result[0].templateInstance).toBe("Station1");
+      expect(result[1].name).toBe("Station1/stationName");
+      expect(result[1].templateRef).toBe("Station_Type");
+      expect(result[1].templateInstance).toBe("Station1");
+    });
+
+    it("handles partial template updates (only changed members)", () => {
+      const metrics: UMetric[] = [
+        {
+          name: "Pump1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Pump_Type",
+            metrics: [
+              { name: "temperature", type: "Double", value: 75.0 },
+            ],
+          },
+        },
+      ];
+      const result = flattenTemplateMetrics(metrics);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Pump1/temperature");
+    });
+
+    it("handles template with empty metrics array", () => {
+      const metricsEmpty: UMetric[] = [
+        {
+          name: "Pump1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Pump_Type",
+            metrics: [],
+          },
+        },
+      ];
+      expect(flattenTemplateMetrics(metricsEmpty)).toHaveLength(0);
+    });
+
+    it("passes through template metric when value has no metrics key", () => {
+      // A template value without a metrics key is not recognized as a template
+      // and passes through as a regular metric (defensive handling)
+      const metricsUndefined: UMetric[] = [
+        {
+          name: "Pump1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Pump_Type",
+          },
+        },
+      ];
+      const result = flattenTemplateMetrics(metricsUndefined);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Pump1");
+    });
+
+    it("does not annotate regular metrics with template fields", () => {
+      const metrics: UMetric[] = [
+        { name: "temperature", type: "Double", value: 72.5 },
+      ];
+      const result = flattenTemplateMetrics(metrics) as (UMetric & {
+        templateRef?: string;
+        templateInstance?: string;
+      })[];
+      expect(result[0].templateRef).toBeUndefined();
+      expect(result[0].templateInstance).toBeUndefined();
+    });
+  });
+
+  describe("extractAndStoreDefinitions", () => {
+    it("stores template definitions in the host registry", () => {
+      const testHost = {
+        groups: {},
+      } as unknown as SparkplugHost;
+      const metrics: UMetric[] = [
+        {
+          name: "Pump_Type",
+          type: "Template",
+          value: {
+            isDefinition: true,
+            version: "1.0",
+            metrics: [
+              { name: "temperature", type: "Double", value: null },
+              { name: "pressure", type: "Float", value: null },
+            ],
+          },
+        },
+        { name: "regular", type: "Int32", value: 42 },
+      ];
+      extractAndStoreDefinitions(testHost, metrics);
+      const defs = getTemplateDefinitions(testHost);
+      expect(defs.size).toBe(1);
+      expect(defs.has("Pump_Type")).toBe(true);
+      expect(defs.get("Pump_Type")?.version).toBe("1.0");
+      expect(defs.get("Pump_Type")?.metrics).toHaveLength(2);
+    });
+
+    it("does not store template instances as definitions", () => {
+      const testHost = {
+        groups: {},
+      } as unknown as SparkplugHost;
+      const metrics: UMetric[] = [
+        {
+          name: "Pump1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Pump_Type",
+            metrics: [
+              { name: "temperature", type: "Double", value: 72.5 },
+            ],
+          },
+        },
+      ];
+      extractAndStoreDefinitions(testHost, metrics);
+      const defs = getTemplateDefinitions(testHost);
+      expect(defs.size).toBe(0);
+    });
+  });
+
+  describe("template integration with host events", () => {
+    it("flattens template metrics in nbirth messages", () => {
+      host.events.emit(
+        "nbirth",
+        { groupId: "templateGroup", edgeNode: "templateNode" },
+        {
+          metrics: [
+            {
+              name: "Pump_Type",
+              type: "Template",
+              value: {
+                isDefinition: true,
+                version: "1.0",
+                metrics: [
+                  { name: "temperature", type: "Double", value: null },
+                  { name: "running", type: "Boolean", value: null },
+                ],
+              },
+            },
+            {
+              name: "Pump1",
+              type: "Template",
+              value: {
+                isDefinition: false,
+                templateRef: "Pump_Type",
+                metrics: [
+                  { name: "temperature", type: "Double", value: 72.5 },
+                  { name: "running", type: "Boolean", value: true },
+                ],
+              },
+            },
+            { name: "uptimeSeconds", type: "UInt64", value: 3600 },
+          ],
+        },
+      );
+      const node = host.groups["templateGroup"]?.nodes["templateNode"];
+      expect(node).toBeDefined();
+      // Template definition should NOT be stored as a metric
+      expect(node.metrics["Pump_Type"]).toBeUndefined();
+      // Template instance should NOT be stored as a metric
+      expect(node.metrics["Pump1"]).toBeUndefined();
+      // Flattened members should be stored
+      expect(node.metrics["Pump1/temperature"]).toBeDefined();
+      expect(node.metrics["Pump1/temperature"].type).toBe("Double");
+      expect(node.metrics["Pump1/temperature"].value).toBe(72.5);
+      expect(node.metrics["Pump1/running"]).toBeDefined();
+      expect(node.metrics["Pump1/running"].type).toBe("Boolean");
+      expect(node.metrics["Pump1/running"].value).toBe(true);
+      // Regular metric should still be stored
+      expect(node.metrics["uptimeSeconds"]).toBeDefined();
+      expect(node.metrics["uptimeSeconds"].value).toBe(3600);
+      // Template definition should be in the registry
+      const defs = getTemplateDefinitions(host);
+      expect(defs.has("Pump_Type")).toBe(true);
+    });
+
+    it("flattens template metrics in ndata messages", () => {
+      // First, set up the node via nbirth
+      host.events.emit(
+        "nbirth",
+        { groupId: "dataGroup", edgeNode: "dataNode" },
+        {
+          metrics: [
+            {
+              name: "Pump1",
+              type: "Template",
+              value: {
+                isDefinition: false,
+                templateRef: "Pump_Type",
+                metrics: [
+                  { name: "temperature", type: "Double", value: 72.5 },
+                ],
+              },
+            },
+          ],
+        },
+      );
+      // Now send a partial ndata update
+      host.events.emit(
+        "ndata",
+        { groupId: "dataGroup", edgeNode: "dataNode" },
+        {
+          metrics: [
+            {
+              name: "Pump1",
+              type: "Template",
+              value: {
+                isDefinition: false,
+                templateRef: "Pump_Type",
+                metrics: [
+                  { name: "temperature", type: "Double", value: 85.0 },
+                ],
+              },
+            },
+          ],
+        },
+      );
+      const node = host.groups["dataGroup"]?.nodes["dataNode"];
+      expect(node.metrics["Pump1/temperature"].value).toBe(85.0);
     });
   });
 

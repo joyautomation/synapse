@@ -107,6 +107,32 @@ export { getNodeStateString } from "./stateMachines/node.ts";
 export { getHostStateString } from "./stateMachines/host.ts";
 
 /**
+ * Returns the template definitions registry for a host.
+ * Populated from NBIRTH metrics with isDefinition=true.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @returns {Map<string, UTemplate>} Map of template name to definition.
+ */
+export { getTemplateDefinitions } from "./stateMachines/host.ts";
+
+/**
+ * Flattens template instance metrics into individual scalar metrics with path-based names.
+ * Template definitions (isDefinition=true) are skipped.
+ * @param {UMetric[]} metrics - The metrics array to flatten.
+ * @param {string} [parentPath] - Path prefix for nested templates.
+ * @param {string} [parentTemplateRef] - Template definition name.
+ * @param {string} [parentInstance] - Template instance name.
+ * @returns {UMetric[]} Flattened metrics with templateRef and templateInstance annotations.
+ */
+export { flattenTemplateMetrics } from "./stateMachines/host.ts";
+
+/**
+ * Extracts template definitions from metrics and stores them in the host registry.
+ * @param {SparkplugHost} host - The SparkplugHost instance.
+ * @param {UMetric[]} metrics - The metrics to scan for definitions.
+ */
+export { extractAndStoreDefinitions } from "./stateMachines/host.ts";
+
+/**
  * Adds metrics to a Sparkplug node or device, merging with existing metrics.
  * @param {SparkplugNode} node - The Sparkplug node to modify.
  * @param {Record<string, SparkplugMetric>} metrics - Record of metrics to add (will be merged with existing metrics).

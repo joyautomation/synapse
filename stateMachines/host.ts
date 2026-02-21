@@ -33,6 +33,7 @@ import { onMessage } from "./utils.ts";
 import type {
   UMetric,
   UPayload,
+  UTemplate,
 } from "sparkplug-payload/lib/sparkplugbpayload.js";
 
 type commandType =
@@ -322,6 +323,107 @@ export const createHost = (config: SparkplugCreateHostInput): SparkplugHost => {
   return connectHost(host);
 };
 
+// --- Template definition registry (per-host, in-memory) ---
+
+const templateRegistries = new WeakMap<
+  SparkplugHost,
+  Map<string, UTemplate>
+>();
+
+function getTemplateRegistry(
+  host: SparkplugHost,
+): Map<string, UTemplate> {
+  if (!templateRegistries.has(host)) {
+    templateRegistries.set(host, new Map());
+  }
+  return templateRegistries.get(host)!;
+}
+
+/**
+ * Returns the template definitions registry for a host.
+ * Definitions are populated from NBIRTH metrics with isDefinition=true.
+ */
+export function getTemplateDefinitions(
+  host: SparkplugHost,
+): Map<string, UTemplate> {
+  return getTemplateRegistry(host);
+}
+
+/**
+ * Scans metrics for template definitions and stores them in the host registry.
+ * Should be called before flattenTemplateMetrics on BIRTH messages.
+ */
+export function extractAndStoreDefinitions(
+  host: SparkplugHost,
+  metrics: UMetric[],
+): void {
+  const registry = getTemplateRegistry(host);
+  for (const metric of metrics) {
+    if (
+      metric.type === "Template" &&
+      metric.value != null &&
+      typeof metric.value === "object" &&
+      "metrics" in (metric.value as object)
+    ) {
+      const template = metric.value as UTemplate;
+      if (template.isDefinition && metric.name) {
+        registry.set(metric.name, template);
+      }
+    }
+  }
+}
+
+function isTemplateValue(value: unknown): value is UTemplate {
+  return value != null && typeof value === "object" && "metrics" in value;
+}
+
+/**
+ * Flattens template instance metrics into individual scalar metrics with path-based names.
+ * Template definitions (isDefinition=true) are skipped.
+ * Each flattened metric is annotated with templateRef and templateInstance.
+ */
+export function flattenTemplateMetrics(
+  metrics: UMetric[],
+  parentPath?: string,
+  parentTemplateRef?: string,
+  parentInstance?: string,
+): UMetric[] {
+  const result: UMetric[] = [];
+  for (const metric of metrics) {
+    const metricName = metric.name ?? undefined;
+    const fullName = parentPath
+      ? `${parentPath}/${metricName}`
+      : metricName;
+
+    if (metric.type === "Template" && isTemplateValue(metric.value)) {
+      const template = metric.value as UTemplate;
+      if (template.isDefinition) continue;
+      if (template.metrics) {
+        const ref: string | undefined = template.templateRef != null
+          ? template.templateRef
+          : parentTemplateRef;
+        const instance = parentPath ? parentPath : metricName;
+        result.push(
+          ...flattenTemplateMetrics(template.metrics, fullName, ref, instance),
+        );
+      }
+    } else {
+      const flattened: UMetric & {
+        templateRef?: string;
+        templateInstance?: string;
+      } = { ...metric, name: fullName };
+      if (parentTemplateRef) {
+        flattened.templateRef = parentTemplateRef;
+      }
+      if (parentInstance) {
+        flattened.templateInstance = parentInstance;
+      }
+      result.push(flattened);
+    }
+  }
+  return result;
+}
+
 type dataEvent = "nbirth" | "dbirth" | "ndata" | "ddata";
 
 type DataEventConditionArgs = {
@@ -560,7 +662,20 @@ export const createHostMessageEvents = (host: SparkplugHost) => {
   ["nbirth", "dbirth", "ndata", "ddata"].forEach((event) => {
     host.events.on(
       event,
-      processDataEvent(host, event as "nbirth" | "dbirth" | "ndata" | "ddata"),
+      (topic: SparkplugTopic, message: UPayload) => {
+        if (message.metrics) {
+          // Extract template definitions before flattening (BIRTH messages)
+          if (event === "nbirth" || event === "dbirth") {
+            extractAndStoreDefinitions(host, message.metrics);
+          }
+          // Flatten template instances in-place so all listeners see scalar metrics
+          message.metrics = flattenTemplateMetrics(message.metrics);
+        }
+        processDataEvent(
+          host,
+          event as "nbirth" | "dbirth" | "ndata" | "ddata",
+        )(topic, message);
+      },
     );
   });
 };
