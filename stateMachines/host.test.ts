@@ -389,6 +389,61 @@ describe("The host state machine", () => {
       expect(result[0].templateChain).toBeUndefined();
       expect(result[0].templateInstance).toBeUndefined();
     });
+
+    it("annotates flat scalars with prefix-matched instance chain (Ignition pattern)", () => {
+      // Ignition sends some UDT direct members as top-level flat scalars alongside
+      // the template instance value — they share the same path prefix.
+      const metrics: UMetric[] = [
+        {
+          name: "Motor1",
+          type: "Template",
+          value: {
+            isDefinition: false,
+            templateRef: "Motor_Type",
+            // Only nested sub-UDT inside; direct scalars are sent flat below
+            metrics: [
+              {
+                name: "subUDT",
+                type: "Template",
+                value: {
+                  isDefinition: false,
+                  templateRef: "Sub_Type",
+                  metrics: [
+                    { name: "subMetric", type: "Float", value: 1.0 },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        // Direct UDT members sent as flat scalars at the payload root
+        { name: "Motor1/ANYFAULT", type: "Boolean", value: false },
+        { name: "Motor1/SPEED", type: "Float", value: 1450.0 },
+        // Non-template metric — should NOT get a chain
+        { name: "uptime", type: "UInt64", value: 3600 },
+      ];
+      const result = flattenTemplateMetrics(metrics) as (UMetric & {
+        templateChain?: string[];
+        templateInstance?: string;
+      })[];
+
+      const byName = Object.fromEntries(result.map((m) => [m.name, m]));
+
+      // Nested scalar from the sub-UDT
+      expect(byName["Motor1/subUDT/subMetric"].templateChain).toEqual([
+        "Motor_Type",
+        "Sub_Type",
+      ]);
+
+      // Flat scalars that were at the payload root — must be annotated via second pass
+      expect(byName["Motor1/ANYFAULT"].templateChain).toEqual(["Motor_Type"]);
+      expect(byName["Motor1/ANYFAULT"].templateInstance).toBe("Motor1");
+      expect(byName["Motor1/SPEED"].templateChain).toEqual(["Motor_Type"]);
+      expect(byName["Motor1/SPEED"].templateInstance).toBe("Motor1");
+
+      // Non-template metric must NOT get a chain
+      expect(byName["uptime"].templateChain).toBeUndefined();
+    });
   });
 
   describe("extractAndStoreDefinitions", () => {

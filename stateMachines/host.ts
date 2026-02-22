@@ -388,7 +388,10 @@ export function flattenTemplateMetrics(
   parentPath?: string,
   parentChain?: string[],
   parentInstance?: string,
+  instancePaths?: Map<string, string[]>,
 ): UMetric[] {
+  const isTopLevel = !parentPath;
+  const pathMap = instancePaths ?? new Map<string, string[]>();
   const result: UMetric[] = [];
   for (const metric of metrics) {
     const metricName = metric.name ?? undefined;
@@ -407,8 +410,18 @@ export function flattenTemplateMetrics(
           ? [...(parentChain ?? []), thisRef]
           : parentChain;
         const instance = parentPath ? parentInstance ?? parentPath : metricName;
+        // Record this instance path so the second pass can annotate flat scalars
+        if (chain && fullName) {
+          pathMap.set(fullName, chain);
+        }
         result.push(
-          ...flattenTemplateMetrics(template.metrics, fullName, chain, instance),
+          ...flattenTemplateMetrics(
+            template.metrics,
+            fullName,
+            chain,
+            instance,
+            pathMap,
+          ),
         );
       }
     } else {
@@ -425,6 +438,39 @@ export function flattenTemplateMetrics(
       result.push(flattened);
     }
   }
+
+  // Top-level second pass: annotate flat scalars that arrived without a template
+  // wrapper but whose name starts with a known template instance path.
+  // This handles devices (e.g. Ignition) that send direct UDT members as
+  // pre-named flat scalars alongside the nested template instance value.
+  if (isTopLevel && pathMap.size > 0) {
+    for (const m of result) {
+      const typedM = m as UMetric & {
+        templateChain?: string[];
+        templateInstance?: string;
+      };
+      if (!typedM.templateChain && typedM.name) {
+        let bestPath = "";
+        let bestChain: string[] | undefined;
+        for (const [path, chain] of pathMap) {
+          if (
+            typedM.name.startsWith(path + "/") &&
+            path.length > bestPath.length
+          ) {
+            bestPath = path;
+            bestChain = chain;
+          }
+        }
+        if (bestChain) {
+          typedM.templateChain = bestChain;
+          if (!typedM.templateInstance) {
+            typedM.templateInstance = bestPath;
+          }
+        }
+      }
+    }
+  }
+
   return result;
 }
 
