@@ -466,13 +466,42 @@ const updateHostMetric = ({ host, topic, message }: DataEventConditionArgs) => {
         };
       }
       if (metric.name) {
+        const existing = host.groups[groupId].nodes[edgeNode].devices[deviceId]
+          .metrics[metric.name] as
+          | (UMetric & { templateChain?: string[]; templateInstance?: string })
+          | undefined;
+        const updated = metric as UMetric & {
+          templateChain?: string[];
+          templateInstance?: string;
+        };
+        if (existing?.templateChain && !updated.templateChain) {
+          updated.templateChain = existing.templateChain;
+        }
+        if (existing?.templateInstance && !updated.templateInstance) {
+          updated.templateInstance = existing.templateInstance;
+        }
         host.groups[groupId].nodes[edgeNode].devices[deviceId].metrics[
           metric.name
-        ] = metric;
+        ] = updated;
       }
     } else {
       if (metric.name) {
-        host.groups[groupId].nodes[edgeNode].metrics[metric.name] = metric;
+        const existing = host.groups[groupId].nodes[edgeNode].metrics[
+          metric.name
+        ] as
+          | (UMetric & { templateChain?: string[]; templateInstance?: string })
+          | undefined;
+        const updated = metric as UMetric & {
+          templateChain?: string[];
+          templateInstance?: string;
+        };
+        if (existing?.templateChain && !updated.templateChain) {
+          updated.templateChain = existing.templateChain;
+        }
+        if (existing?.templateInstance && !updated.templateInstance) {
+          updated.templateInstance = existing.templateInstance;
+        }
+        host.groups[groupId].nodes[edgeNode].metrics[metric.name] = updated;
       }
     }
   });

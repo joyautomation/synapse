@@ -542,6 +542,54 @@ describe("The host state machine", () => {
       const node = host.groups["dataGroup"]?.nodes["dataNode"];
       expect(node.metrics["Pump1/temperature"].value).toBe(85.0);
     });
+
+    it("preserves templateChain when a flat scalar DDATA update overwrites a template metric", () => {
+      // DBIRTH with a full template instance — flattening annotates templateChain
+      host.events.emit(
+        "dbirth",
+        { groupId: "chainGroup", edgeNode: "chainNode", deviceId: "chainDevice" },
+        {
+          metrics: [
+            {
+              name: "Motor1",
+              type: "Template",
+              value: {
+                isDefinition: false,
+                templateRef: "Motor_Type",
+                metrics: [
+                  { name: "speed", type: "Float", value: 1450.0 },
+                  { name: "running", type: "Boolean", value: true },
+                ],
+              },
+            },
+          ],
+        },
+      );
+      const device = host.groups["chainGroup"]?.nodes["chainNode"]
+        ?.devices["chainDevice"];
+      const speedMetric = device?.metrics["Motor1/speed"] as
+        | (UMetric & { templateChain?: string[] })
+        | undefined;
+      expect(speedMetric?.templateChain).toEqual(["Motor_Type"]);
+      expect(speedMetric?.value).toBe(1450.0);
+
+      // DDATA arrives with just the scalar — no template wrapper, simulating Ignition behaviour
+      host.events.emit(
+        "ddata",
+        { groupId: "chainGroup", edgeNode: "chainNode", deviceId: "chainDevice" },
+        {
+          metrics: [
+            { name: "Motor1/speed", type: "Float", value: 1500.0 },
+          ],
+        },
+      );
+      const updatedSpeed = device?.metrics["Motor1/speed"] as
+        | (UMetric & { templateChain?: string[] })
+        | undefined;
+      expect(updatedSpeed?.value).toBe(1500.0);
+      // templateChain must be preserved from the DBIRTH
+      expect(updatedSpeed?.templateChain).toEqual(["Motor_Type"]);
+    });
   });
 
   it("disconnects properly when we tell it to", () => {
