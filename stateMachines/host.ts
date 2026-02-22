@@ -380,12 +380,13 @@ function isTemplateValue(value: unknown): value is UTemplate {
 /**
  * Flattens template instance metrics into individual scalar metrics with path-based names.
  * Template definitions (isDefinition=true) are skipped.
- * Each flattened metric is annotated with templateRef and templateInstance.
+ * Each flattened metric is annotated with templateChain (ordered outermost→innermost)
+ * and templateInstance (top-level instance name).
  */
 export function flattenTemplateMetrics(
   metrics: UMetric[],
   parentPath?: string,
-  parentTemplateRef?: string,
+  parentChain?: string[],
   parentInstance?: string,
 ): UMetric[] {
   const result: UMetric[] = [];
@@ -399,21 +400,24 @@ export function flattenTemplateMetrics(
       const template = metric.value as UTemplate;
       if (template.isDefinition) continue;
       if (template.metrics) {
-        const ref: string | undefined = template.templateRef != null
+        const thisRef: string | undefined = template.templateRef != null
           ? template.templateRef
-          : parentTemplateRef;
-        const instance = parentPath ? parentPath : metricName;
+          : undefined;
+        const chain = thisRef
+          ? [...(parentChain ?? []), thisRef]
+          : parentChain;
+        const instance = parentPath ? parentInstance ?? parentPath : metricName;
         result.push(
-          ...flattenTemplateMetrics(template.metrics, fullName, ref, instance),
+          ...flattenTemplateMetrics(template.metrics, fullName, chain, instance),
         );
       }
     } else {
       const flattened: UMetric & {
-        templateRef?: string;
+        templateChain?: string[];
         templateInstance?: string;
       } = { ...metric, name: fullName };
-      if (parentTemplateRef) {
-        flattened.templateRef = parentTemplateRef;
+      if (parentChain && parentChain.length > 0) {
+        flattened.templateChain = parentChain;
       }
       if (parentInstance) {
         flattened.templateInstance = parentInstance;

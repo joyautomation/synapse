@@ -337,8 +337,8 @@ export interface SparkplugMetric extends Omit<UMetric, "value"> {
     timestamp: number;
     value: UMetric["value"];
   };
-  /** The name of the template definition this metric was flattened from (e.g., "Pump_Type"). */
-  templateRef?: string;
+  /** Ordered chain of template definition names from outermost to innermost (e.g., ["Motor_Type", "Pump_Type"]). */
+  templateChain?: string[];
   /** The name of the template instance this metric belongs to (e.g., "Pump1"). */
   templateInstance?: string;
 }

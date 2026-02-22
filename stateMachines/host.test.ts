@@ -231,17 +231,17 @@ describe("The host state machine", () => {
         },
       ];
       const result = flattenTemplateMetrics(metrics) as (UMetric & {
-        templateRef?: string;
+        templateChain?: string[];
         templateInstance?: string;
       })[];
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe("Pump1/temperature");
       expect(result[0].type).toBe("Double");
       expect(result[0].value).toBe(72.5);
-      expect(result[0].templateRef).toBe("Pump_Type");
+      expect(result[0].templateChain).toEqual(["Pump_Type"]);
       expect(result[0].templateInstance).toBe("Pump1");
       expect(result[1].name).toBe("Pump1/pressure");
-      expect(result[1].templateRef).toBe("Pump_Type");
+      expect(result[1].templateChain).toEqual(["Pump_Type"]);
       expect(result[1].templateInstance).toBe("Pump1");
     });
 
@@ -314,15 +314,15 @@ describe("The host state machine", () => {
         },
       ];
       const result = flattenTemplateMetrics(metrics) as (UMetric & {
-        templateRef?: string;
+        templateChain?: string[];
         templateInstance?: string;
       })[];
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe("Station1/Pump1/temperature");
-      expect(result[0].templateRef).toBe("Pump_Type");
+      expect(result[0].templateChain).toEqual(["Station_Type", "Pump_Type"]);
       expect(result[0].templateInstance).toBe("Station1");
       expect(result[1].name).toBe("Station1/stationName");
-      expect(result[1].templateRef).toBe("Station_Type");
+      expect(result[1].templateChain).toEqual(["Station_Type"]);
       expect(result[1].templateInstance).toBe("Station1");
     });
 
@@ -383,10 +383,10 @@ describe("The host state machine", () => {
         { name: "temperature", type: "Double", value: 72.5 },
       ];
       const result = flattenTemplateMetrics(metrics) as (UMetric & {
-        templateRef?: string;
+        templateChain?: string[];
         templateInstance?: string;
       })[];
-      expect(result[0].templateRef).toBeUndefined();
+      expect(result[0].templateChain).toBeUndefined();
       expect(result[0].templateInstance).toBeUndefined();
     });
   });
