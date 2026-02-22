@@ -36,7 +36,7 @@
     "jsr:@std/testing@^1.0.9": "1.0.15",
     "jsr:@ts-morph/bootstrap@0.24": "0.24.0",
     "jsr:@ts-morph/common@0.24": "0.24.0",
-    "npm:@joyautomation/sparkplug-payload@^1.0.6": "1.0.6",
+    "npm:@joyautomation/sparkplug-payload@^1.0.7": "1.0.7",
     "npm:@types/node@^24.2.0": "24.2.0",
     "npm:date-fns@^3.6.0": "3.6.0",
     "npm:long@^5.2.3": "5.3.2",
@@ -198,8 +198,8 @@
     "@babel/runtime@7.28.6": {
       "integrity": "sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA=="
     },
-    "@joyautomation/sparkplug-payload@1.0.6": {
-      "integrity": "sha512-if35b0pHLfBWOkgc6ymhlB5hsIFIyeVdQ11wCOximX+k0Uk/mWsKkowwIfhiLbBiJ/rcQNHHcFjJPutnewZHcA==",
+    "@joyautomation/sparkplug-payload@1.0.7": {
+      "integrity": "sha512-Bl61//Shh/K95+0r8KtyP8S1qfWhZmH1h7RgdoVD1y/w8mf9Zi3JMAYhcI5rPPyrprhU1lbp3kRPYkJx5+6opQ==",
       "dependencies": [
         "@types/long",
         "long@4.0.0",
@@ -538,7 +538,7 @@
       "jsr:@std/assert@^1.0.10",
       "jsr:@std/expect@^1.0.11",
       "jsr:@std/testing@^1.0.9",
-      "npm:@joyautomation/sparkplug-payload@^1.0.6",
+      "npm:@joyautomation/sparkplug-payload@^1.0.7",
       "npm:@types/node@^24.2.0",
       "npm:date-fns@^3.6.0",
       "npm:long@^5.2.3",
