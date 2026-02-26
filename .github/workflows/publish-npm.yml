@@ -1,9 +1,11 @@
-name: Run Tests
+name: Publish
 on:
-  pull_request:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
-  test:
+  publish:
     runs-on: ubuntu-latest
 
     permissions:
@@ -16,7 +18,10 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v2.5
+          deno-version: v2.1
 
       - name: Run tests
-        run: deno test --allow-env
+        run: deno task test
+
+      - name: Publish package
+        run: deno publish
