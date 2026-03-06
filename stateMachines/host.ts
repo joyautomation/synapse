@@ -323,6 +323,83 @@ export const createHost = (config: SparkplugCreateHostInput): SparkplugHost => {
   return connectHost(host);
 };
 
+// --- Metric alias registry (per-host, in-memory) ---
+// Maps alias numbers to metric names, keyed by "groupId/edgeNode" or "groupId/edgeNode/deviceId"
+
+const aliasRegistries = new WeakMap<
+  SparkplugHost,
+  Map<string, Map<number, string>>
+>();
+
+function getAliasRegistry(
+  host: SparkplugHost,
+): Map<string, Map<number, string>> {
+  if (!aliasRegistries.has(host)) {
+    aliasRegistries.set(host, new Map());
+  }
+  return aliasRegistries.get(host)!;
+}
+
+function getAliasKey(topic: SparkplugTopic): string {
+  const { groupId, edgeNode, deviceId } = topic;
+  return deviceId
+    ? `${groupId}/${edgeNode}/${deviceId}`
+    : `${groupId}/${edgeNode}`;
+}
+
+/**
+ * Builds alias-to-name mappings from BIRTH message metrics.
+ * Called on NBIRTH/DBIRTH to register aliases for subsequent DATA messages.
+ */
+function buildAliasMap(
+  host: SparkplugHost,
+  topic: SparkplugTopic,
+  metrics: UMetric[],
+): void {
+  const registry = getAliasRegistry(host);
+  const key = getAliasKey(topic);
+  const aliasMap = new Map<number, string>();
+  for (const metric of metrics) {
+    if (metric.name && metric.alias != null) {
+      const alias = typeof metric.alias === "number"
+        ? metric.alias
+        : Number(metric.alias);
+      if (!isNaN(alias)) {
+        aliasMap.set(alias, metric.name);
+      }
+    }
+  }
+  if (aliasMap.size > 0) {
+    registry.set(key, aliasMap);
+  }
+}
+
+/**
+ * Resolves metric aliases to names using the alias map from the last BIRTH message.
+ * If a metric has an alias but no name, the name is filled in from the map.
+ */
+function resolveAliases(
+  host: SparkplugHost,
+  topic: SparkplugTopic,
+  metrics: UMetric[],
+): void {
+  const registry = getAliasRegistry(host);
+  const key = getAliasKey(topic);
+  const aliasMap = registry.get(key);
+  if (!aliasMap) return;
+  for (const metric of metrics) {
+    if (!metric.name && metric.alias != null) {
+      const alias = typeof metric.alias === "number"
+        ? metric.alias
+        : Number(metric.alias);
+      const name = aliasMap.get(alias);
+      if (name) {
+        metric.name = name;
+      }
+    }
+  }
+}
+
 // --- Template definition registry (per-host, in-memory) ---
 
 const templateRegistries = new WeakMap<
@@ -743,12 +820,19 @@ export const createHostMessageEvents = (host: SparkplugHost) => {
       event,
       (topic: SparkplugTopic, message: UPayload) => {
         if (message.metrics) {
-          // Extract template definitions before flattening (BIRTH messages)
           if (event === "nbirth" || event === "dbirth") {
+            // Extract template definitions before flattening (BIRTH messages)
             extractAndStoreDefinitions(host, message.metrics);
+            // Flatten template instances in-place so all listeners see scalar metrics
+            message.metrics = flattenTemplateMetrics(message.metrics);
+            // Build alias→name map from flattened BIRTH metrics
+            buildAliasMap(host, topic, message.metrics);
+          } else {
+            // Resolve aliases in DATA messages before processing
+            resolveAliases(host, topic, message.metrics);
+            // Flatten template instances in DATA messages too
+            message.metrics = flattenTemplateMetrics(message.metrics);
           }
-          // Flatten template instances in-place so all listeners see scalar metrics
-          message.metrics = flattenTemplateMetrics(message.metrics);
         }
         processDataEvent(
           host,
