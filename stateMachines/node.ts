@@ -91,8 +91,9 @@ const onConnect = (node: SparkplugNode) => {
         `${createSpbTopic("NCMD", mqttConfig)}`,
         { qos: 0 }
       )(node.mqtt);
-      // Subscribe to STATE
+      // Subscribe to STATE (legacy and Sparkplug B 3.0)
       subscribeCurry("STATE/#", { qos: 1 })(node.mqtt);
+      subscribeCurry("spBv1.0/STATE/#", { qos: 1 })(node.mqtt);
     }
 
     node.events.emit("connected");
@@ -225,7 +226,8 @@ const setupNodeEvents = (node: SparkplugNode) => {
           qos: 0,
         }
       ),
-      subscribeCurry("STATE/#", { qos: 1 })
+      subscribeCurry("STATE/#", { qos: 1 }),
+      subscribeCurry("spBv1.0/STATE/#", { qos: 1 }),
     );
   }
   on<
