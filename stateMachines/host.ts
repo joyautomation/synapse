@@ -131,6 +131,7 @@ const setupHostEvents = (host: SparkplugHost) => {
         onError(host),
       ),
       subscribeCurry("STATE/#", { qos: 1 }),
+      subscribeCurry("spBv1.0/STATE/#", { qos: 1 }),
       (mqtt) =>
         pipe(
           mqtt,

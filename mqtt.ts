@@ -727,6 +727,16 @@ export const handleMessage = (
         emitter.emit("state", state, primaryHostId);
       },
     },
+    {
+      // Sparkplug B 3.0: spBv1.0/STATE/{hostId} with JSON payload {"online":true,"timestamp":...}
+      condition: ({ topic }) => topic.groupId === "STATE" && !!topic.commandType,
+      action: ({ topic, message }) => {
+        const state = Buffer.from(message).toString();
+        const primaryHostId = topic.commandType;
+        log.info(`spBv1.0 STATE message received for ${primaryHostId}, payload: ${state}`);
+        emitter.emit("state", state, primaryHostId);
+      },
+    },
     ...handleCommands,
     {
       condition: () => true,
